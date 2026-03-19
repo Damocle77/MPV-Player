@@ -1,0 +1,37 @@
+Scarica i file opportuni dal repo adeguato per ubuntu:
+https://repo.wuerth-phoenix.com/icinga2-agents/neteye-4.40/ubuntu-jammy/pool/main/i/icinga2/
+ 
+icinga2-bin_2.14.3-1+ubuntu24.04_amd64.deb
+icinga2-common_2.14.3-1+ubuntu24.04_all.deb
+icinga2_2.14.3-1+ubuntu24.04_amd64.deb
+
+# 1. Fix Boost-mageddon (le runtime vitali)
+ubuntu 24:
+apt update && apt install -y libboost-coroutine1.83.0 libboost-context1.83.0 libboost-filesystem1.83.0 libboost-iostreams1.83.0 libboost-thread1.83.0 libboost-program-options1.83.0
+
+ubuntu 22:
+apt-get install -y icinga2 icinga2-bin icinga2-common
+
+
+# 2. Installa i pacchetti icinga 
+dpkg -i icinga2* 
+
+
+# 3. Rinfrescata al linker e start del demone
+ldconfig
+systemctl enable --now icinga2
+ 
+# 4. Test manuale e validazione finale
+chmod -R +x /usr/lib/nagios/plugins && chmod +x /usr/lib/nagios/plugins
+/usr/lib/nagios/plugins/check_load -w 5,4,3 -c 10,8,6
+icinga2 daemon -C && systemctl restart icinga2
+
+---
+
+# test. Diagnosi librerie mancanti
+ldd /usr/lib/x86_64-linux-gnu/icinga2/sbin/icinga2 | grep "not found"
+
+# test. Installazione Nagios Plugins e workaround path 
+apt install -y monitoring-plugins-basic monitoring-plugins-standard
+mkdir -p /usr/lib/nagios
+ln -s /usr/lib/monitoring-plugins /usr/lib/nagios/plugins

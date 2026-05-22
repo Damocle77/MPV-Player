@@ -168,7 +168,7 @@ mpv --profile=cas-scaled --msg-level=all=v ~/Video/film.mkv
 
 | Voce | Cos'è | Quando ti serve |
 |---|---|---|
-| `CAS.glsl` / `CAS-scaled.glsl` / `FSR.glsl` | shader core universali | preset di base: sharpening leggero / upscaling leggero / FSR più spinto |
+| `CAS.glsl` / `CAS-scaled.glsl` / `FSR.glsl` | shader core universali | base: sharpening leggero / upscaling leggero / FSR più spinto |
 | `NVScaler.glsl` / `NVSharpen.glsl` | NVIDIA Image Scaling & Sharpen | su GPU NVIDIA per scaling+sharpen o solo sharpen |
 | `adaptive-sharpen.glsl` | sharpening adattivo | video già nativi ma un po' soft |
 | `KrigBilateral.glsl` | chroma scaler bilaterale | dopo un upscaler luma (es. RAVU) per qualità cromatica |
@@ -177,7 +177,7 @@ mpv --profile=cas-scaled --msg-level=all=v ~/Video/film.mkv
 | **FSRCNNX/** | sub‑dir con shader neural SR x2/x3/x4 | sorgenti basse + GPU robusta |
 | **GLSL_High‑end/** | preset Anime4K HQ (include `mpv.conf`/`input.conf`) | anime/cartoon su PC potente |
 | **GLSL_Low‑end/** | preset Anime4K leggeri | anime su laptop/IGPU |
-| **Nnedi3-RAVU/** | NNEDI3 & RAVU in varianti `OpenGL/` e `Vulkan/` + fallback root | upscaling avanzato: NNEDI3 per line‑art, RAVU per film/anime moderni |
+| **Nnedi3-RAVU/** | NNEDI3 & RAVU in varianti `OpenGL/` e `Vulkan/` + fallback root | upscaling: NNEDI3 per line‑art, RAVU per film/anime moderni |
 
 </sub>
 

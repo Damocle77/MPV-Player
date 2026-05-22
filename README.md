@@ -1,4 +1,4 @@
-# Guida MPV per Windows e Linux
+# Guida MPV Player per Windows e Linux + Shaders (Vulkan,Opengl,Neural)
 
 Guida pratica per installare e configurare **MPV** con profili modulari per Windows e Linux, GPU AMD/NVIDIA/Intel, shader CAS/FSR/NIS, debanding e troubleshooting.
 

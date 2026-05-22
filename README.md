@@ -533,7 +533,7 @@ oppure backend OpenGL legacy.
 
 La distinzione serve solo a evitare il classico dubbio esistenziale:
 
-> "compute o gather?"
+> "Vulkan o CUDA?"
 
 che per un nuovo utente suona più come un boss di Elden Ring che come una scelta di backend video.
 

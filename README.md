@@ -1,8 +1,8 @@
-# MPV Player Windows & Linux +Shaders (Vulkan, Opengl, Neural)
+# Guida MPV per Windows e Linux
 
 Guida pratica per installare e configurare **MPV** con profili modulari per Windows e Linux, GPU AMD/NVIDIA/Intel, shader CAS/FSR/NIS, debanding e troubleshooting.
 
-L'obiettivo è avere una configurazione semplice da mantenere, abbastanza leggera da non trasformare ogni film in un benchmark, ma abbastanza curata da migliorare nitidezza, scaling e fluidità.
+L'obiettivo è avere una configurazione semplice da mantenere, abbastanza leggera da non trasformare ogni film in un benchmark termico, ma abbastanza curata da migliorare nitidezza, scaling e fluidità senza costringerti a contemplare pixel sfocati come un monaco medievale del bitrate.
 
 ---
 
@@ -58,6 +58,8 @@ Servono:
 
 ### Windows
 
+<sub>
+
 ```text
 %APPDATA%\mpv\
 ├── mpv.conf
@@ -72,24 +74,23 @@ Servono:
     ├── KrigBilateral.glsl
     ├── SSimDownscaler.glsl
     ├── SSimSuperRes.glsl
-    ├── FSRCNNX\          # neural upscaler
-    │   ├── FSRCNNX_x2_16-0-4-1.glsl
-    │   ├── FSRCNNX_x3_16-0-4-1.glsl
-    │   └── FSRCNNX_x4_16-0-4-1.glsl
-    ├── GLSL_High-end\     # Anime4K preset HQ
-    │   ├── input.conf (preset)
-    │   ├── mpv.conf   (preset)
-    │   └── shaders\Anime4K_*.glsl
-    ├── GLSL_Low-end\      # Anime4K preset leggeri
-    │   └── …
-    └── Nnedi3-RAVU\
+    ├── FSRCNNX.zip          # archivio; estrarre in FSRCNNX/ per usare i preset
+    ├── GLSL_High-end.zip    # Anime4K HQ preset, estrarre in GLSL_High-end/
+    ├── GLS_Low-end.zip      # Anime4K light preset, estrarre in GLS_Low-end/
+    ├── Nnedi3-RAVU.zip      # contiene cartelle OpenGL/ Vulkan e .hook
+    └── (una volta estratti, le relative cartelle FSRCNNX/, GLSL_High-end/, GLSL_Low-end/, Nnedi3-RAVU/ appaiono qui)
+
         ├── OpenGL\       # shader gather / win_bgfx
         ├── Vulkan\       # shader compute / gpu-next
         ├── nnedi3-*.hook   # fallback universali
         └── ravu-*.hook
 ```
 
+</sub>
+
 ### Linux
+
+<sub>
 
 ```text
 ~/.config/mpv/
@@ -98,7 +99,9 @@ Servono:
 └── shaders/    # stessa struttura di Windows
 ```
 
-> **Suggerimento**: mantieni le cartelle `Nnedi3-RAVU/OpenGL` e `Nnedi3-RAVU/Vulkan` separate. MPV carica il file che indichi, non cerca da solo "la versione giusta". In `vo=gpu-next + gpu-api=vulkan` usa la variant *Vulkan*. In `vo=gpu` (OpenGL) usa *OpenGL*.
+</sub>
+
+> **Suggerimento****: mantieni le cartelle `Nnedi3-RAVU/OpenGL` e `Nnedi3-RAVU/Vulkan` separate. MPV carica il file che indichi, non cerca da solo "la versione giusta". In `vo=gpu-next + gpu-api=vulkan` usa la variant *Vulkan*. In `vo=gpu` (OpenGL) usa *OpenGL*.
 
 ---
 
@@ -117,7 +120,7 @@ Servono:
 | **GLSL_Low‑end/** | preset Anime4K leggeri | anime su laptop/IGPU |
 | **Nnedi3-RAVU/** | NNEDI3 & RAVU in varianti `OpenGL/` e `Vulkan/` + fallback root | upscaling avanzato: NNEDI3 per line‑art, RAVU per film/anime moderni |
 
-In pratica: **scarichi, copi qui dentro, poi richiami il profilo** (`--profile=ravu-r3`, `--profile=fsrcnnx-x2`, ecc.). Se un profilo extra non parte, controlla di aver scelto la variante corretta per il backend (OpenGL vs Vulkan) e che il file sia davvero nel path indicato.
+In pratica: **scarichi, copi qui dentro, poi richiami il profilo**** (`--profile=ravu-r3`, `--profile=fsrcnnx-x2`, ecc.). Se un profilo extra non parte, controlla di aver scelto la variante corretta per il backend (OpenGL vs Vulkan) e che il file sia davvero nel path indicato.
 
 ---
 
@@ -218,7 +221,7 @@ FSRCNNX_x2_8-0-4-1.glsl
 FSRCNNX_x2_16-0-4-1.glsl
 ```
 
-Più alto non significa automaticamente meglio: significa anche più carico sulla GPU.
+Più alto non significa automaticamente meglio: significa anche più carico sulla GPU e maggior probabilità di trasformare la ventola in un personaggio secondario del film.
 
 #### Download RAVU
 
@@ -271,7 +274,7 @@ glsl-shaders-clr
 glsl-shader="~~/shaders/ravu-r4-yuv-opengl.hook"
 ```
 
-Nota pratica: alcuni `.hook` sono pensati per backend o modalità specifiche. Se uno non parte, prova prima una variante meno specifica o cambia backend grafico. Naturalmente non potevano chiamarli tutti `.glsl`, sarebbe stato troppo misericordioso.
+Nota pratica: alcuni `.hook` sono pensati per backend o modalità specifiche. Se uno non parte, prova prima una variante meno specifica o cambia backend grafico. Naturalmente non potevano chiamarli tutti `.glsl`, perché la serenità mentale dell'utente evidentemente non rientrava nei requisiti di progetto.
 
 #### Download shader IGV singoli
 
@@ -886,7 +889,7 @@ CAS.glsl.txt
 FSR.glsl.txt
 ```
 
-Perché nascondere le estensioni dei file è apparentemente considerato design, non sabotaggio.
+Perché nascondere le estensioni dei file continua a essere considerata una brillante idea UX da qualche parte nel multiverso.
 
 ### Video troppo tagliente
 
@@ -1076,9 +1079,11 @@ nis + nvsharpen
 cas-scaled + fsr + nis
 ```
 
-Più shader non significa più qualità. Spesso significa soltanto prendere una sorgente già maltrattata e inciderne i difetti sulla pietra con zelo notarile.
+Più shader non significa più qualità. Spesso significa soltanto prendere una sorgente già maltrattata e incidere i suoi difetti nel marmo con zelo quasi religioso.
 
 ---
+
+> *Nota pratica:* se inizi a concatenare cinque shader neurali, due sharpen e un downscaler “per vedere cosa succede”, quello che succede è che MPV diventa un benchmark ambulante e la GPU inizia a rivalutare le sue scelte di vita.
 
 ## Setup consigliati rapidi
 

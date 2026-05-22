@@ -1553,7 +1553,18 @@ Più shader non significa più qualità. Spesso significa soltanto prendere una 
 
 ---
 
-## Licenza
+## Crediti e shader di terze parti
 
-Questa guida può essere usata, modificata e adattata liberamente. Gli shader citati appartengono ai rispettivi repository/autori.
+Questo progetto raccoglie configurazioni, preset e riferimenti a shader sviluppati dai rispettivi autori originali.
+
+Repository e progetti citati includono:
+
+- agyild/glsl-shaders
+- kevinlekiller/NVScaler
+- bloc97/Anime4K
+- bjin/mpv-prescalers
+- igv/FSRCNN-TensorFlow
+- shader e gist pubblicati da IGV
+
+Tutti i diritti e le eventuali licenze dei singoli shader appartengono ai rispettivi autori/repository originali.
 

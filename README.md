@@ -58,7 +58,7 @@ Servono:
 
 ## Installazione su Windows
 
-Questa sezione installa MPV, crea le cartelle corrette e copia configurazione + shader dal progetto GitHub.
+Questa sezione installa MPV, crea le cartelle corrette e copia la configurazione dal progetto GitHub.
 
 ### 1. Installare Git e MPV
 
@@ -91,27 +91,13 @@ mkdir "$env:APPDATA/mpv" -Force
 mkdir "$env:APPDATA/mpv/shaders" -Force
 ```
 
-Percorso finale:
-
-```text
-%APPDATA%/mpv
-```
-
-Di solito corrisponde a:
-
-```text
-C:/Users/<utente>/AppData/Roaming/mpv
-```
-
 ### 3. Clonare questo progetto
 
-Repository ufficiale di questa guida:
+Repository ufficiale:
 
 ```text
 https://github.com/Damocle77/MPV-Player.git
 ```
-
-Clona il repository:
 
 ```powershell
 cd "$env:USERPROFILE/Downloads"
@@ -119,195 +105,14 @@ git clone https://github.com/Damocle77/MPV-Player.git
 cd ./MPV-Player
 ```
 
-### 4. Copiare configurazione e shader
+### 4. Copiare configurazione
 
 ```powershell
-Copy-Item ./mpv.conf "$env:APPDATA/mpv/mpv.conf" -Force
+ettamente nel repository GitHub.
 
-if (Test-Path ./input.conf) {
-    Copy-Item ./input.conf "$env:APPDATA/mpv/input.conf" -Force
-}
+Questo mantiene il progetto leggero, aggiornabile e più pulito dal punto di vista delle licenze.
 
-Copy-Item ./shaders/* "$env:APPDATA/mpv/shaders" -Recurse -Force
-```
-
-### 5. Estrarre gli shader pack `.zip`
-
-Nel progetto gli shader pack pesanti possono essere tenuti come archivi `.zip`, così GitHub non mostra mille file come se stessi pubblicando l'elenco telefonico della GPU.
-
-```powershell
-$shaderDir = "$env:APPDATA/mpv/shaders"
-
-"FSRCNNX", "GLSL_High-end", "GLS_Low-end", "Nnedi3-RAVU" | ForEach-Object {
-    $zip = Join-Path $shaderDir "$_.zip"
-    $dst = Join-Path $shaderDir $_
-
-    if (Test-Path $zip) {
-        Expand-Archive $zip $dst -Force
-    }
-}
-```
-
-Verifica:
-
-```powershell
-dir "$env:APPDATA/mpv"
-dir "$env:APPDATA/mpv/shaders"
-```
-
-Occhio solo a non ottenere cartelle doppie tipo:
-
-```text
-FSRCNNX/FSRCNNX/FSRCNNX_x2_16-0-4-1.glsl
-```
-
-Se succede, sposta i file al livello corretto. Non è colpa tua: gli ZIP sono piccoli contenitori di caos con compressione opzionale.
-
-### 6. Test rapido
-
-```powershell
-mpv --profile=cas-scaled "D:/Video/film.mkv"
-```
-
-Test shader extra:
-
-```powershell
-mpv --profile=fsrcnnx-x2 "D:/Video/film.mkv"
-mpv --profile=ravu-r3 "D:/Video/film.mkv"
-```
-
-Log verboso, quando MPV fa il misterioso:
-
-```powershell
-mpv --profile=cas-scaled --msg-level=all=v "D:/Video/film.mkv"
-```
-
----
-
-## Installazione su Linux
-
-Questa sezione installa MPV, crea la configurazione in `~/.config/mpv` e copia configurazione + shader dal progetto GitHub.
-
-### 1. Installare MPV, Git e unzip
-
-Fedora / Nobara:
-
-```bash
-sudo dnf install mpv git unzip
-```
-
-Ubuntu / Debian:
-
-```bash
-sudo apt update
-sudo apt install mpv git unzip
-```
-
-Arch / EndeavourOS / Manjaro:
-
-```bash
-sudo pacman -S mpv git unzip
-```
-
-openSUSE:
-
-```bash
-sudo zypper install mpv git unzip
-```
-
-Verifica:
-
-```bash
-git --version
-mpv --version
-```
-
-> Nota Flatpak: se installi MPV da Flathub, la configurazione non sta in `~/.config/mpv`, ma in `~/.var/app/io.mpv.Mpv/config/mpv`. Comodo come un telecomando con tre sportelli batteria, ma almeno funziona.
-
-### 2. Creare la cartella configurazione
-
-```bash
-mkdir -p ~/.config/mpv/shaders
-```
-
-### 3. Clonare questo progetto
-
-Repository ufficiale di questa guida:
-
-```text
-https://github.com/Damocle77/MPV-Player.git
-```
-
-Clona il repository:
-
-```bash
-cd ~/Downloads
-git clone https://github.com/Damocle77/MPV-Player.git
-cd MPV-Player
-```
-
-### 4. Copiare configurazione e shader
-
-```bash
-cp mpv.conf ~/.config/mpv/mpv.conf
-
-if [ -f input.conf ]; then
-    cp input.conf ~/.config/mpv/input.conf
-fi
-
-cp -r shaders/* ~/.config/mpv/shaders/
-```
-
-### 5. Estrarre gli shader pack `.zip`
-
-```bash
-cd ~/.config/mpv/shaders
-
-for pack in FSRCNNX GLSL_High-end GLS_Low-end Nnedi3-RAVU; do
-    if [ -f "$pack.zip" ]; then
-        mkdir -p "$pack"
-        unzip -o "$pack.zip" -d "$pack"
-    fi
-done
-```
-
-Verifica:
-
-```bash
-find ~/.config/mpv -maxdepth 3 -type f | sort | head -80
-```
-
-Se vedi cartelle doppie tipo:
-
-```text
-~/.config/mpv/shaders/Nnedi3-RAVU/Nnedi3-RAVU/Vulkan/...
-```
-
-sposta il contenuto al livello giusto. Gli archivi ZIP, quando possono complicare una cosa semplice, lo fanno con dedizione quasi artistica.
-
-### 6. Test rapido
-
-```bash
-mpv --profile=linux-amd,cas-scaled ~/Video/film.mkv
-```
-
-Per Intel:
-
-```bash
-mpv --profile=linux-intel,cas-scaled ~/Video/film.mkv
-```
-
-Per NVIDIA:
-
-```bash
-mpv --profile=linux-nvidia,cas-scaled ~/Video/film.mkv
-```
-
-Test shader extra:
-
-```bash
-mpv --profile=fsrcnnx-x2 ~/Video/film.mkv
-mpv --profile=ravu-r3 ~/Video/film.mkv
+Scarica gli shader direttadeo/film.mkv
 ```
 
 Log verboso:
@@ -343,18 +148,9 @@ mpv --profile=cas-scaled --msg-level=all=v ~/Video/film.mkv
     ├── GLS_Low-end.zip      # Anime4K light preset, estrarre in GLS_Low-end/
     ├── Nnedi3-RAVU.zip      # contiene cartelle OpenGL/ Vulkan e .hook
     └── (una volta estratti, le relative cartelle FSRCNNX/, GLSL_High-end/, GLSL_Low-end/, Nnedi3-RAVU/ appaiono qui)
+
         ├── OpenGL\       # shader gather / win_bgfx
-        ├── Vulkan\       # shader compute / gpu-next
-```
-
-</sub>
-
-### Linux
-
-<sub>
-
-```text
-~/.config/mpv/
+        ├── Vulkan\      fig/mpv/
 ├── mpv.conf
 ├── input.conf
 └── shaders/    # stessa struttura di Windows
@@ -372,7 +168,7 @@ mpv --profile=cas-scaled --msg-level=all=v ~/Video/film.mkv
 
 | Voce | Cos'è | Quando ti serve |
 |---|---|---|
-| `CAS.glsl` / `CAS-scaled.glsl` / `FSR.glsl` | shader core universali | base: sharpening leggero / upscaling leggero / FSR più spinto |
+| `CAS.glsl` / `CAS-scaled.glsl` / `FSR.glsl` | shader core universali | preset di base: sharpening leggero / upscaling leggero / FSR più spinto |
 | `NVScaler.glsl` / `NVSharpen.glsl` | NVIDIA Image Scaling & Sharpen | su GPU NVIDIA per scaling+sharpen o solo sharpen |
 | `adaptive-sharpen.glsl` | sharpening adattivo | video già nativi ma un po' soft |
 | `KrigBilateral.glsl` | chroma scaler bilaterale | dopo un upscaler luma (es. RAVU) per qualità cromatica |
@@ -381,44 +177,11 @@ mpv --profile=cas-scaled --msg-level=all=v ~/Video/film.mkv
 | **FSRCNNX/** | sub‑dir con shader neural SR x2/x3/x4 | sorgenti basse + GPU robusta |
 | **GLSL_High‑end/** | preset Anime4K HQ (include `mpv.conf`/`input.conf`) | anime/cartoon su PC potente |
 | **GLSL_Low‑end/** | preset Anime4K leggeri | anime su laptop/IGPU |
-| **Nnedi3-RAVU/** | NNEDI3 & RAVU in varianti `OpenGL/` e `Vulkan/` + fallback root | upscaling: NNEDI3 per line‑art, RAVU per film/anime moderni |
+| **Nnedi3-RAVU/** | NNEDI3 & RAVU in varianti `OpenGL/` e `Vulkan/` + fallback root | upscaling avanzato: NNEDI3 per line‑art, RAVU per film/anime moderni |
 
 </sub>
 
-In pratica: **scarichi, copi qui dentro, poi richiami il profilo** (`--profile=ravu-r3`, `--profile=fsrcnnx-x2`, ecc.). Se un profilo extra non parte, controlla di aver scelto la variante corretta per il backend (OpenGL vs Vulkan) e che il file sia davvero nel path indicato.
-
----
-
-## Shader consigliati
-
-La guida separa gli shader in tre gruppi:
-
-1. **Core multipiattaforma**, consigliati per AMD, NVIDIA e Intel.
-2. **NVIDIA-specifici**, da usare soprattutto su GPU NVIDIA.
-3. **Extra avanzati**, utili per utenti che vogliono sperimentare e hanno GPU abbastanza robusta.
-
-### Core consigliati
-
-Questi sono gli shader da installare sempre:
-
-```text
-CAS.glsl
-CAS-scaled.glsl
-FSR.glsl
-```
-
-Repository:
-
-```text
-https://github.com/agyild/glsl-shaders
-```
-
-Uso pratico:
-
-| Shader | AMD | NVIDIA | Intel | Uso consigliato |
-|---|---:|---:|---:|---|
-| `CAS.glsl` | sì | sì | sì | sharpening leggero |
-| `CAS-scaled.glsl` | sì | sì | sì | preset quotidiano equilibrato |
+In pratica: **scarichi, copi qui dentro, poi richiami il profilo** (`--profile` | sì | sì | sì | preset quotidiano equilibrato |
 | `FSR.glsl` | sì | sì | sì | upscaling più marcato |
 
 ### Shader NVIDIA-specifici
@@ -457,7 +220,7 @@ Questi non fanno parte del setup base, ma possono essere citati nella guida come
 | SSimDownscaler | `https://gist.github.com/igv` oppure mirror community | downscaling di qualità | utile quando riduci sorgenti più grandi |
 | SSimSuperRes | `https://gist.github.com/igv` oppure mirror community | sharpening/super-res avanzato | più da profilo enthusiast |
 | RAVU | `https://github.com/bjin/mpv-prescalers` | upscaling avanzato | usare `Vulkan/` con `gpu-next + vulkan`, oppure `OpenGL/` con backend OpenGL |
-| Adaptive Sharpen | `https://gist.github.com/igv/8a77e4eb8276753b54bb94c1c50c317e` | sharpening generale | con moderazione |
+| Adaptive Sharpen | `https://gist.github.com/igv/8a77e4eb8276753b54bb94c1c50c317e` | sharpening generale | da usare con moderazione |
 
 #### Download Anime4K
 
@@ -530,7 +293,7 @@ oppure backend OpenGL legacy.
 
 La distinzione serve solo a evitare il classico dubbio esistenziale:
 
-> "Vulkan o CUDA?"
+> "compute o gather?"
 
 che per un nuovo utente suona più come un boss di Elden Ring che come una scelta di backend video.
 
@@ -1553,18 +1316,7 @@ Più shader non significa più qualità. Spesso significa soltanto prendere una 
 
 ---
 
-## Crediti e shader di terze parti
+## Licenza
 
-Questo progetto raccoglie configurazioni, preset e riferimenti a shader sviluppati dai rispettivi autori originali.
-
-Repository e progetti citati includono:
-
-- agyild/glsl-shaders
-- kevinlekiller/NVScaler
-- bloc97/Anime4K
-- bjin/mpv-prescalers
-- igv/FSRCNN-TensorFlow
-- shader e gist pubblicati da IGV
-
-Tutti i diritti e le eventuali licenze dei singoli shader appartengono ai rispettivi autori/repository originali.
+Questa guida può essere usata, modificata e adattata liberamente. Gli shader citati appartengono ai rispettivi repository/autori.
 

@@ -10,9 +10,9 @@ L'obiettivo è avere una configurazione semplice da mantenere, abbastanza legger
 
 - [Obiettivo](#obiettivo)
 - [Prerequisiti](#prerequisiti)
-- [Struttura della configurazione](#struttura-della-configurazione)
 - [Installazione su Windows](#installazione-su-windows)
 - [Installazione su Linux](#installazione-su-linux)
+- [Struttura della configurazione](#struttura-della-configurazione)
 - [Shader consigliati](#shader-consigliati)
 - [Configurazione Windows](#configurazione-windows)
 - [Configurazione Linux](#configurazione-linux)
@@ -48,9 +48,276 @@ La configurazione è pensata per uso reale: film, anime, serie TV, video compres
 Servono:
 
 - MPV aggiornato
-- Git, utile per scaricare gli shader
+- Git, utile per scaricare e aggiornare questo progetto
 - una GPU con driver funzionanti
 - un terminale: PowerShell su Windows, shell Bash/Zsh/Fish su Linux
+- `unzip` su Linux, se vuoi estrarre gli shader pack `.zip` da terminale
+
+---
+
+## Installazione su Windows
+
+Questa sezione installa MPV, crea le cartelle corrette e copia configurazione + shader dal progetto GitHub.
+
+### 1. Installare Git e MPV
+
+Apri **PowerShell**.
+
+```powershell
+winget --version
+```
+
+Se `winget` risponde, installa Git e MPV:
+
+```powershell
+winget install Git.Git
+winget install --id shinchiro.mpv
+```
+
+Verifica:
+
+```powershell
+git --version
+mpv --version
+```
+
+Se `mpv` non viene trovato nel `PATH`, chiudi e riapri PowerShell. Sì, Windows ogni tanto vuole essere riavviato anche solo per ricordarsi dove ha messo le chiavi.
+
+### 2. Creare la cartella configurazione
+
+```powershell
+mkdir "$env:APPDATA/mpv" -Force
+mkdir "$env:APPDATA/mpv/shaders" -Force
+```
+
+Percorso finale:
+
+```text
+%APPDATA%/mpv
+```
+
+Di solito corrisponde a:
+
+```text
+C:/Users/<utente>/AppData/Roaming/mpv
+```
+
+### 3. Clonare questo progetto
+
+Sostituisci `<utente>` con il tuo utente GitHub e `<repo>` con il nome reale del repository.
+
+```powershell
+cd "$env:USERPROFILE/Downloads"
+git clone https://github.com/<utente>/<repo>.git
+cd ./<repo>
+```
+
+Esempio, se il repository si chiama `MPV-player`:
+
+```powershell
+cd "$env:USERPROFILE/Downloads"
+git clone https://github.com/<utente>/MPV-player.git
+cd ./MPV-player
+```
+
+### 4. Copiare configurazione e shader
+
+```powershell
+Copy-Item ./mpv.conf "$env:APPDATA/mpv/mpv.conf" -Force
+
+if (Test-Path ./input.conf) {
+    Copy-Item ./input.conf "$env:APPDATA/mpv/input.conf" -Force
+}
+
+Copy-Item ./shaders/* "$env:APPDATA/mpv/shaders" -Recurse -Force
+```
+
+### 5. Estrarre gli shader pack `.zip`
+
+Nel progetto gli shader pack pesanti possono essere tenuti come archivi `.zip`, così GitHub non mostra mille file come se stessi pubblicando l'elenco telefonico della GPU.
+
+```powershell
+$shaderDir = "$env:APPDATA/mpv/shaders"
+
+"FSRCNNX", "GLSL_High-end", "GLS_Low-end", "Nnedi3-RAVU" | ForEach-Object {
+    $zip = Join-Path $shaderDir "$_.zip"
+    $dst = Join-Path $shaderDir $_
+
+    if (Test-Path $zip) {
+        Expand-Archive $zip $dst -Force
+    }
+}
+```
+
+Verifica:
+
+```powershell
+dir "$env:APPDATA/mpv"
+dir "$env:APPDATA/mpv/shaders"
+```
+
+Occhio solo a non ottenere cartelle doppie tipo:
+
+```text
+FSRCNNX/FSRCNNX/FSRCNNX_x2_16-0-4-1.glsl
+```
+
+Se succede, sposta i file al livello corretto. Non è colpa tua: gli ZIP sono piccoli contenitori di caos con compressione opzionale.
+
+### 6. Test rapido
+
+```powershell
+mpv --profile=cas-scaled "D:/Video/film.mkv"
+```
+
+Test shader extra:
+
+```powershell
+mpv --profile=fsrcnnx-x2 "D:/Video/film.mkv"
+mpv --profile=ravu-r3 "D:/Video/film.mkv"
+```
+
+Log verboso, quando MPV fa il misterioso:
+
+```powershell
+mpv --profile=cas-scaled --msg-level=all=v "D:/Video/film.mkv"
+```
+
+---
+
+## Installazione su Linux
+
+Questa sezione installa MPV, crea la configurazione in `~/.config/mpv` e copia configurazione + shader dal progetto GitHub.
+
+### 1. Installare MPV, Git e unzip
+
+Fedora / Nobara:
+
+```bash
+sudo dnf install mpv git unzip
+```
+
+Ubuntu / Debian:
+
+```bash
+sudo apt update
+sudo apt install mpv git unzip
+```
+
+Arch / EndeavourOS / Manjaro:
+
+```bash
+sudo pacman -S mpv git unzip
+```
+
+openSUSE:
+
+```bash
+sudo zypper install mpv git unzip
+```
+
+Verifica:
+
+```bash
+git --version
+mpv --version
+```
+
+> Nota Flatpak: se installi MPV da Flathub, la configurazione non sta in `~/.config/mpv`, ma in `~/.var/app/io.mpv.Mpv/config/mpv`. Comodo come un telecomando con tre sportelli batteria, ma almeno funziona.
+
+### 2. Creare la cartella configurazione
+
+```bash
+mkdir -p ~/.config/mpv/shaders
+```
+
+### 3. Clonare questo progetto
+
+Sostituisci `<utente>` con il tuo utente GitHub e `<repo>` con il nome reale del repository.
+
+```bash
+cd ~/Downloads
+git clone https://github.com/<utente>/<repo>.git
+cd <repo>
+```
+
+Esempio:
+
+```bash
+cd ~/Downloads
+git clone https://github.com/<utente>/MPV-player.git
+cd MPV-player
+```
+
+### 4. Copiare configurazione e shader
+
+```bash
+cp mpv.conf ~/.config/mpv/mpv.conf
+
+if [ -f input.conf ]; then
+    cp input.conf ~/.config/mpv/input.conf
+fi
+
+cp -r shaders/* ~/.config/mpv/shaders/
+```
+
+### 5. Estrarre gli shader pack `.zip`
+
+```bash
+cd ~/.config/mpv/shaders
+
+for pack in FSRCNNX GLSL_High-end GLS_Low-end Nnedi3-RAVU; do
+    if [ -f "$pack.zip" ]; then
+        mkdir -p "$pack"
+        unzip -o "$pack.zip" -d "$pack"
+    fi
+done
+```
+
+Verifica:
+
+```bash
+find ~/.config/mpv -maxdepth 3 -type f | sort | head -80
+```
+
+Se vedi cartelle doppie tipo:
+
+```text
+~/.config/mpv/shaders/Nnedi3-RAVU/Nnedi3-RAVU/Vulkan/...
+```
+
+sposta il contenuto al livello giusto. Gli archivi ZIP, quando possono complicare una cosa semplice, lo fanno con dedizione quasi artistica.
+
+### 6. Test rapido
+
+```bash
+mpv --profile=linux-amd,cas-scaled ~/Video/film.mkv
+```
+
+Per Intel:
+
+```bash
+mpv --profile=linux-intel,cas-scaled ~/Video/film.mkv
+```
+
+Per NVIDIA:
+
+```bash
+mpv --profile=linux-nvidia,cas-scaled ~/Video/film.mkv
+```
+
+Test shader extra:
+
+```bash
+mpv --profile=fsrcnnx-x2 ~/Video/film.mkv
+mpv --profile=ravu-r3 ~/Video/film.mkv
+```
+
+Log verboso:
+
+```bash
+mpv --profile=cas-scaled --msg-level=all=v ~/Video/film.mkv
+```
 
 ---
 
@@ -101,7 +368,7 @@ Servono:
 
 </sub>
 
-> **Suggerimento****: mantieni le cartelle `Nnedi3-RAVU/OpenGL` e `Nnedi3-RAVU/Vulkan` separate. MPV carica il file che indichi, non cerca da solo "la versione giusta". In `vo=gpu-next + gpu-api=vulkan` usa la variant *Vulkan*. In `vo=gpu` (OpenGL) usa *OpenGL*.
+> **Suggerimento**: mantieni le cartelle `Nnedi3-RAVU/OpenGL` e `Nnedi3-RAVU/Vulkan` separate. MPV carica il file che indichi, non cerca da solo "la versione giusta". In `vo=gpu-next + gpu-api=vulkan` usa la variant *Vulkan*. In `vo=gpu` (OpenGL) usa *OpenGL*.
 
 ---
 
@@ -120,7 +387,7 @@ Servono:
 | **GLSL_Low‑end/** | preset Anime4K leggeri | anime su laptop/IGPU |
 | **Nnedi3-RAVU/** | NNEDI3 & RAVU in varianti `OpenGL/` e `Vulkan/` + fallback root | upscaling avanzato: NNEDI3 per line‑art, RAVU per film/anime moderni |
 
-In pratica: **scarichi, copi qui dentro, poi richiami il profilo**** (`--profile=ravu-r3`, `--profile=fsrcnnx-x2`, ecc.). Se un profilo extra non parte, controlla di aver scelto la variante corretta per il backend (OpenGL vs Vulkan) e che il file sia davvero nel path indicato.
+In pratica: **scarichi, copi qui dentro, poi richiami il profilo** (`--profile=ravu-r3`, `--profile=fsrcnnx-x2`, ecc.). Se un profilo extra non parte, controlla di aver scelto la variante corretta per il backend (OpenGL vs Vulkan) e che il file sia davvero nel path indicato.
 
 ---
 
@@ -296,7 +563,7 @@ Nota pratica: alcuni `.hook` sono pensati per backend o modalità specifiche. Se
 | `nnedi3` | Anime/line‑art nostalgico, ti serve nitidezza massima e accetti carico GPU elevato. | Variante `nns32` è compromesso; `nns128+` ≈ incendio. |
 | `ravu-r3` / `ravu-r4` | Upscaling generale moderno. `r3` bilanciato, `r4` qualità massima. | Preferito su film live action; scegli cartella `Vulkan` o `OpenGL` in base al backend. |
 
-Regola: la guida base resta su `CAS`, `CAS-scaled`, `FSR`. Gli extra vanno documentati, non buttati tutti nel preset principale come coriandoli su un server in produzione. `CAS`, `CAS-scaled`, `FSR`. Gli extra vanno documentati, non buttati tutti nel preset principale come coriandoli su un server in produzione.
+Regola: la guida base resta su `CAS`, `CAS-scaled`, `FSR`. Gli extra vanno documentati, non buttati tutti nel preset principale come coriandoli su un server in produzione.
 
 ---
 

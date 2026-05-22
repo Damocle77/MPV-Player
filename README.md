@@ -1,4 +1,4 @@
-# Guida MPV per Windows e Linux
+# MPV per Windows e Linux +Shaders (Vulkan, CUDA, DX3D11)
 
 Guida pratica per installare e configurare **MPV** con profili modulari per Windows e Linux, GPU AMD/NVIDIA/Intel, shader CAS/FSR/NIS, debanding e troubleshooting.
 
@@ -371,6 +371,8 @@ mpv --profile=cas-scaled --msg-level=all=v ~/Video/film.mkv
 
 ### Contenuto della cartella `shaders`
 
+<sub>
+
 | Voce | Cos'è | Quando ti serve |
 |---|---|---|
 | `CAS.glsl` / `CAS-scaled.glsl` / `FSR.glsl` | shader core universali | preset di base: sharpening leggero / upscaling leggero / FSR più spinto |
@@ -383,6 +385,8 @@ mpv --profile=cas-scaled --msg-level=all=v ~/Video/film.mkv
 | **GLSL_High‑end/** | preset Anime4K HQ (include `mpv.conf`/`input.conf`) | anime/cartoon su PC potente |
 | **GLSL_Low‑end/** | preset Anime4K leggeri | anime su laptop/IGPU |
 | **Nnedi3-RAVU/** | NNEDI3 & RAVU in varianti `OpenGL/` e `Vulkan/` + fallback root | upscaling avanzato: NNEDI3 per line‑art, RAVU per film/anime moderni |
+
+</sub>
 
 In pratica: **scarichi, copi qui dentro, poi richiami il profilo** (`--profile=ravu-r3`, `--profile=fsrcnnx-x2`, ecc.). Se un profilo extra non parte, controlla di aver scelto la variante corretta per il backend (OpenGL vs Vulkan) e che il file sia davvero nel path indicato.
 
@@ -455,7 +459,7 @@ Questi non fanno parte del setup base, ma possono essere citati nella guida come
 | KrigBilateral | `https://gist.github.com/igv` oppure mirror community | chroma scaling | utile in catene shader avanzate |
 | SSimDownscaler | `https://gist.github.com/igv` oppure mirror community | downscaling di qualità | utile quando riduci sorgenti più grandi |
 | SSimSuperRes | `https://gist.github.com/igv` oppure mirror community | sharpening/super-res avanzato | più da profilo enthusiast |
-| RAVU | `https://github.com/bjin/mpv-prescalers` | upscaling avanzato | usare la cartella `compute` o `gather` |
+| RAVU | `https://github.com/bjin/mpv-prescalers` | upscaling avanzato | usare `Vulkan/` con `gpu-next + vulkan`, oppure `OpenGL/` con backend OpenGL |
 | Adaptive Sharpen | `https://gist.github.com/igv/8a77e4eb8276753b54bb94c1c50c317e` | sharpening generale | da usare con moderazione |
 
 #### Download Anime4K
@@ -505,12 +509,33 @@ cd ~/.config/mpv/shaders
 git clone https://github.com/bjin/mpv-prescalers.git temp-mpv-prescalers
 ```
 
-Dentro il repository guarda soprattutto:
+Dentro il repository le varianti principali sono state rinominate nella guida in modo più leggibile:
 
 ```text
-temp-mpv-prescalers/compute
-temp-mpv-prescalers/gather
+temp-mpv-prescalers/Vulkan
+temp-mpv-prescalers/OpenGL
 ```
+
+- `Vulkan/` = shader compute moderni, consigliati con:
+
+```ini
+vo=gpu-next
+gpu-api=vulkan
+```
+
+- `OpenGL/` = shader gather/fallback, consigliati con:
+
+```ini
+vo=gpu
+```
+
+oppure backend OpenGL legacy.
+
+La distinzione serve solo a evitare il classico dubbio esistenziale:
+
+> "compute o gather?"
+
+che per un nuovo utente suona più come un boss di Elden Ring che come una scelta di backend video.
 
 Molti shader RAVU hanno estensione `.hook`, per esempio:
 
@@ -1068,8 +1093,8 @@ CTRL+s show-text "Shader attivi: ${glsl-shaders}" 5000
 # Non tutti gli shader sono felici su ogni backend. Che sorpresa, il mondo è imperfetto.
 
 #CTRL+6 no-osd change-list glsl-shaders set "~~/shaders/FSRCNNX/FSRCNNX_x2_16-0-4-1.glsl" ; show-text "Shader: FSRCNNX x2" 2000
-#CTRL+7 no-osd change-list glsl-shaders set "~~/shaders/Nnedi3-RAVU/Vulkan/ravu-r3-yuv.hook" ; show-text "Shader: RAVU r3 Vulkan" 2000
-#CTRL+8 no-osd change-list glsl-shaders set "~~/shaders/Nnedi3-RAVU/OpenGL/ravu-r3-yuv.hook" ; show-text "Shader: RAVU r3 OpenGL" 2000
+#CTRL+7 no-osd change-list glsl-shaders set "~~/shaders/Nnedi3-RAVU/Vulkan/ravu-r3-yuv.hook" ; show-text "Shader: RAVU r3 Vulkan/gpu-next" 2000
+#CTRL+8 no-osd change-list glsl-shaders set "~~/shaders/Nnedi3-RAVU/OpenGL/ravu-r3-yuv.hook" ; show-text "Shader: RAVU r3 OpenGL legacy" 2000
 #CTRL+9 no-osd change-list glsl-shaders set "~~/shaders/adaptive-sharpen.glsl" ; show-text "Shader: Adaptive Sharpen" 2000
 
 # ------------------------------------------------------------
@@ -1534,3 +1559,4 @@ Più shader non significa più qualità. Spesso significa soltanto prendere una 
 ## Licenza
 
 Questa guida può essere usata, modificata e adattata liberamente. Gli shader citati appartengono ai rispettivi repository/autori.
+

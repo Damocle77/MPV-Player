@@ -372,7 +372,7 @@ mpv --profile=cas-scaled --msg-level=all=v ~/Video/film.mkv
 
 | Voce | Cos'è | Quando ti serve |
 |---|---|---|
-| `CAS.glsl` / `CAS-scaled.glsl` / `FSR.glsl` | shader core universali | preset di base: sharpening leggero / upscaling leggero / FSR più spinto |
+| `CAS.glsl` / `CAS-scaled.glsl` / `FSR.glsl` | shader core universali | base: sharpening leggero / upscaling leggero / FSR più spinto |
 | `NVScaler.glsl` / `NVSharpen.glsl` | NVIDIA Image Scaling & Sharpen | su GPU NVIDIA per scaling+sharpen o solo sharpen |
 | `adaptive-sharpen.glsl` | sharpening adattivo | video già nativi ma un po' soft |
 | `KrigBilateral.glsl` | chroma scaler bilaterale | dopo un upscaler luma (es. RAVU) per qualità cromatica |

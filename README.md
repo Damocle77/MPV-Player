@@ -1,4 +1,4 @@
-# MPV per Windows e Linux +Shaders (Vulkan, CUDA, DX3D11)
+# MPV per Windows e Linux +Shaders (Vulkan, CUDA, Dx3D11)
 
 Guida pratica per installare e configurare **MPV** con profili modulari per Windows e Linux, GPU AMD/NVIDIA/Intel, shader CAS/FSR/NIS, debanding e troubleshooting.
 

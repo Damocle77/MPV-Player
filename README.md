@@ -174,10 +174,10 @@ mpv --profile=cas-scaled --msg-level=all=v ~/Video/film.mkv
 | `KrigBilateral.glsl` | chroma scaler bilaterale | dopo un upscaler luma (es. RAVU) per qualità cromatica |
 | `SSimDownscaler.glsl` | downscaler SSIM | quando riduci 4K → 1080p e vuoi qualità |
 | `SSimSuperRes.glsl` | super‑resolution SSIM | boost di dettaglio leggero senza neural SR pesanti |
-| **FSRCNNX/** | sub‑dir con shader neural SR x2/x3/x4 | sorgenti basse + GPU robusta |
-| **GLSL_High‑end/** | preset Anime4K HQ (include `mpv.conf`/`input.conf`) | anime/cartoon su PC potente |
-| **GLSL_Low‑end/** | preset Anime4K leggeri | anime su laptop/IGPU |
-| **Nnedi3-RAVU/** | NNEDI3 & RAVU in varianti `OpenGL/` e `Vulkan/` + fallback root | upscaling: NNEDI3 per line‑art, RAVU per film/anime moderni |
+| `FSRCNNX` | sub‑dir con shader neural SR x2/x3/x4 | sorgenti basse + GPU robusta |
+| `GLSL_High‑end` | preset Anime4K HQ (include `mpv.conf`/`input.conf`) | anime/cartoon su PC potente |
+| `GLSL_Low‑end` | preset Anime4K leggeri | anime su laptop/IGPU |
+| `Nnedi3-RAVU` | NNEDI3 & RAVU in varianti `OpenGL/` e `Vulkan/` + fallback root | upscaling: NNEDI3 per line‑art, RAVU per film/anime moderni |
 
 </sub>
 

@@ -19,6 +19,7 @@ L'obiettivo è avere una configurazione semplice da mantenere, abbastanza legger
 - [Profili disponibili](#profili-disponibili)
 - [Esempi di utilizzo](#esempi-di-utilizzo)
 - [input.conf opzionale](#inputconf-opzionale)
+- [Verifica shader in esecuzione](#verifica-shader-in-esecuzione)
 - [Debug](#debug)
 - [Troubleshooting](#troubleshooting)
 - [Regole pratiche](#regole-pratiche)
@@ -104,20 +105,18 @@ C:/Users/<utente>/AppData/Roaming/mpv
 
 ### 3. Clonare questo progetto
 
-Sostituisci `<utente>` con il tuo utente GitHub e `<repo>` con il nome reale del repository.
+Repository ufficiale di questa guida:
 
-```powershell
-cd "$env:USERPROFILE/Downloads"
-git clone https://github.com/<utente>/<repo>.git
-cd ./<repo>
+```text
+https://github.com/Damocle77/MPV-Player.git
 ```
 
-Esempio, se il repository si chiama `MPV-player`:
+Clona il repository:
 
 ```powershell
 cd "$env:USERPROFILE/Downloads"
-git clone https://github.com/<utente>/MPV-player.git
-cd ./MPV-player
+git clone https://github.com/Damocle77/MPV-Player.git
+cd ./MPV-Player
 ```
 
 ### 4. Copiare configurazione e shader
@@ -233,20 +232,18 @@ mkdir -p ~/.config/mpv/shaders
 
 ### 3. Clonare questo progetto
 
-Sostituisci `<utente>` con il tuo utente GitHub e `<repo>` con il nome reale del repository.
+Repository ufficiale di questa guida:
 
-```bash
-cd ~/Downloads
-git clone https://github.com/<utente>/<repo>.git
-cd <repo>
+```text
+https://github.com/Damocle77/MPV-Player.git
 ```
 
-Esempio:
+Clona il repository:
 
 ```bash
 cd ~/Downloads
-git clone https://github.com/<utente>/MPV-player.git
-cd MPV-player
+git clone https://github.com/Damocle77/MPV-Player.git
+cd MPV-Player
 ```
 
 ### 4. Copiare configurazione e shader
@@ -1033,7 +1030,7 @@ mpv --profile=cas-scaled,deband-heavy "D:\Video\film.mkv"
 ### Windows
 
 ```powershell
-notepad "$env:APPDATA\mpv\input.conf"
+notepad "$env:APPDATA/mpv/input.conf"
 ```
 
 ### Linux
@@ -1045,35 +1042,197 @@ nano ~/.config/mpv/input.conf
 Contenuto consigliato:
 
 ```conf
-# Toggle shader rapidi
-CTRL+1 change-list glsl-shaders set "~~/shaders/CAS.glsl"
-CTRL+2 change-list glsl-shaders set "~~/shaders/CAS-scaled.glsl"
-CTRL+3 change-list glsl-shaders set "~~/shaders/FSR.glsl"
-CTRL+4 change-list glsl-shaders set "~~/shaders/NVScaler.glsl"
-CTRL+0 change-list glsl-shaders clr ""
+# ============================================================
+# MPV input.conf - toggle shader, stats, debug rapido
+# ============================================================
 
+# ------------------------------------------------------------
+# Shader rapidi base
+# ------------------------------------------------------------
+# CTRL+1 / CTRL+2 / CTRL+3 cambiano shader al volo.
+# CTRL+0 pulisce la lista shader.
+# CTRL+S mostra quali shader risultano attivi.
+
+CTRL+1 no-osd change-list glsl-shaders set "~~/shaders/CAS.glsl" ; show-text "Shader: CAS" 2000
+CTRL+2 no-osd change-list glsl-shaders set "~~/shaders/CAS-scaled.glsl" ; show-text "Shader: CAS-scaled" 2000
+CTRL+3 no-osd change-list glsl-shaders set "~~/shaders/FSR.glsl" ; show-text "Shader: FSR" 2000
+CTRL+4 no-osd change-list glsl-shaders set "~~/shaders/NVScaler.glsl" ; show-text "Shader: NVIDIA NIS" 2000
+CTRL+5 no-osd change-list glsl-shaders set "~~/shaders/NVSharpen.glsl" ; show-text "Shader: NVIDIA Sharpen" 2000
+CTRL+0 no-osd change-list glsl-shaders clr "" ; show-text "Shader GLSL disattivati" 2000
+CTRL+s show-text "Shader attivi: ${glsl-shaders}" 5000
+
+# ------------------------------------------------------------
+# Shader extra, abilitali se hai estratto gli ZIP
+# ------------------------------------------------------------
+# Esempi utili. Tienili commentati finché non ti servono.
+# Non tutti gli shader sono felici su ogni backend. Che sorpresa, il mondo è imperfetto.
+
+#CTRL+6 no-osd change-list glsl-shaders set "~~/shaders/FSRCNNX/FSRCNNX_x2_16-0-4-1.glsl" ; show-text "Shader: FSRCNNX x2" 2000
+#CTRL+7 no-osd change-list glsl-shaders set "~~/shaders/Nnedi3-RAVU/Vulkan/ravu-r3-yuv.hook" ; show-text "Shader: RAVU r3 Vulkan" 2000
+#CTRL+8 no-osd change-list glsl-shaders set "~~/shaders/Nnedi3-RAVU/OpenGL/ravu-r3-yuv.hook" ; show-text "Shader: RAVU r3 OpenGL" 2000
+#CTRL+9 no-osd change-list glsl-shaders set "~~/shaders/adaptive-sharpen.glsl" ; show-text "Shader: Adaptive Sharpen" 2000
+
+# ------------------------------------------------------------
+# Stats / overlay diagnostici
+# ------------------------------------------------------------
+# i o TAB mostrano l'overlay statistiche.
+# CTRL+s mostra direttamente la property glsl-shaders.
+
+i script-binding stats/display-stats-toggle
+TAB script-binding stats/display-stats-toggle
+? script-binding stats/display-page-5
+
+# ------------------------------------------------------------
 # Screenshot
+# ------------------------------------------------------------
+# Utile per confronto A/B: stesso frame, shader diversi.
+
 s screenshot
 S screenshot video
 
-# Stats MPV
-TAB script-binding stats/display-stats-toggle
-i script-binding stats/display-stats-toggle
-
+# ------------------------------------------------------------
 # Volume
+# ------------------------------------------------------------
+
 UP add volume 5
 DOWN add volume -5
 
-# Audio delay
+# ------------------------------------------------------------
+# Audio/sub delay
+# ------------------------------------------------------------
+
 CTRL+LEFT add audio-delay -0.050
 CTRL+RIGHT add audio-delay 0.050
-
-# Subtitle delay
 ALT+LEFT add sub-delay -0.050
 ALT+RIGHT add sub-delay 0.050
 ```
 
-Nota: per verificare shader, renderer e decoding, apri le statistiche durante la riproduzione con `i` o `TAB`, a seconda della build e della configurazione.
+Nota pratica: `change-list glsl-shaders set` sostituisce lo shader attivo. È più sicuro di `append` o `toggle`, perché evita di impilare tre upscaler uno sopra l'altro come se stessi costruendo una lasagna di artefatti.
+
+---
+
+## Verifica shader in esecuzione
+
+Questa sezione serve a capire se MPV sta davvero caricando gli shader oppure se stai solo guardando lo stesso video con più speranza, attività nobile ma poco misurabile.
+
+### Metodo 1: OSD durante la riproduzione
+
+Con l'`input.conf` consigliato:
+
+```text
+CTRL+s
+```
+
+mostra a schermo la property:
+
+```text
+glsl-shaders
+```
+
+Se tutto funziona, vedrai qualcosa tipo:
+
+```text
+Shader attivi: ~~ / shaders / CAS-scaled.glsl
+```
+
+oppure:
+
+```text
+Shader attivi: ~~ / shaders / FSRCNNX / FSRCNNX_x2_16-0-4-1.glsl
+```
+
+Gli spazi qui sopra sono solo per leggibilità: nel player comparirà il path reale. Se la riga è vuota, MPV non ha shader GLSL attivi.
+
+### Metodo 2: overlay statistiche
+
+Durante il video premi:
+
+```text
+i
+```
+
+oppure:
+
+```text
+TAB
+```
+
+L'overlay statistiche mostra renderer, decoder, frame drop, timing e informazioni video. Non sempre mostra la lista shader in modo esplicito su tutte le build, quindi usa `CTRL+s` per la verifica diretta degli shader.
+
+### Metodo 3: log da terminale
+
+Windows PowerShell:
+
+```powershell
+mpv --profile=cas-scaled --msg-level=all=v "D:/Video/film.mkv" 2>&1 | Tee-Object "$env:TEMP/mpv-shader.log"
+Select-String -Path "$env:TEMP/mpv-shader.log" -Pattern "glsl|shader|CAS|FSR|RAVU|FSRCNNX|NIS"
+```
+
+Linux:
+
+```bash
+mpv --profile=cas-scaled --msg-level=all=v ~/Video/film.mkv 2>&1 | tee /tmp/mpv-shader.log
+grep -Ei 'glsl|shader|CAS|FSR|RAVU|FSRCNNX|NIS' /tmp/mpv-shader.log
+```
+
+Se MPV non trova un file shader, nel log lo dice. Non sempre con poesia, ma lo dice.
+
+### Metodo 4: confronto A/B con screenshot
+
+Usa lo stesso frame, scatta uno screenshot senza shader e uno con shader.
+
+Windows:
+
+```powershell
+mpv --no-config --pause "D:/Video/film.mkv"
+mpv --profile=cas-scaled --pause "D:/Video/film.mkv"
+```
+
+Linux:
+
+```bash
+mpv --no-config --pause ~/Video/film.mkv
+mpv --profile=cas-scaled --pause ~/Video/film.mkv
+```
+
+Poi premi `s` nello stesso punto del video. Se stai confrontando frame diversi, stai facendo benchmarking creativo, non analisi.
+
+### Metodo 5: verifica path shader
+
+Windows:
+
+```powershell
+dir "$env:APPDATA/mpv/shaders"
+dir "$env:APPDATA/mpv/shaders/FSRCNNX"
+dir "$env:APPDATA/mpv/shaders/Nnedi3-RAVU"
+```
+
+Linux:
+
+```bash
+ls -lh ~/.config/mpv/shaders
+ls -lh ~/.config/mpv/shaders/FSRCNNX
+ls -lh ~/.config/mpv/shaders/Nnedi3-RAVU
+```
+
+---
+
+## Cosa fanno le opzioni principali
+
+| Opzione | Dove | Significato semplice | Quando cambiarla |
+|---|---|---|---|
+| `vo=gpu-next` | Windows/Linux | renderer moderno di MPV/libplacebo | lascialo così, salvo bug specifici |
+| `gpu-api=d3d11` | Windows | backend grafico stabile su Windows | se usi Vulkan su Windows e sai perché, allora sai anche dove mettere le mani |
+| `gpu-api=vulkan` | Linux | backend consigliato per `gpu-next` e shader compute | se dà problemi, prova OpenGL |
+| `hwdec=d3d11va` | Windows | decoding hardware via D3D11 | default sano per AMD/NVIDIA/Intel |
+| `hwdec=vaapi` | Linux AMD/Intel | decoding hardware Linux | se VAAPI rompe, usa `linux-safe` |
+| `hwdec=nvdec` | NVIDIA | decoding hardware NVIDIA | opzionale; se instabile torna ad `auto-safe` |
+| `scale=ewa_lanczossharp` | tutti | scaler nitido ma non folle | se troppo tagliente, prova scaler più morbidi |
+| `dscale=mitchell` | tutti | downscale controllato | ok per uso generale |
+| `deband=yes` | tutti | riduce banding leggero | se impasta, abbassa o disattiva |
+| `video-sync=display-resample` | tutti | sincronizza video al refresh monitor | se noti scatti strani, prova `video-sync=audio` |
+| `interpolation=yes` | tutti | aiuta fluidità su mismatch fps/refresh | se crea effetto strano, metti `no` |
+| `glsl-shaders-clr` | profili | pulisce shader già caricati | fondamentale quando cambi shader, evita il circo multi-upscaler |
 
 ---
 
@@ -1375,4 +1534,3 @@ Più shader non significa più qualità. Spesso significa soltanto prendere una 
 ## Licenza
 
 Questa guida può essere usata, modificata e adattata liberamente. Gli shader citati appartengono ai rispettivi repository/autori.
-

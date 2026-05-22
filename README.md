@@ -181,8 +181,8 @@ mpv --profile=cas-scaled --msg-level=all=v ~/Video/film.mkv
 
 </sub>
 
-In pratica: **scarichi, copi qui dentro, poi richiami il profilo** (`--profile` | sì | sì | sì | preset equilibrato |
-| `FSR.glsl` | sì | sì | sì | upscaling più marcato |
+In pratica: **scarichi, copi qui dentro, poi richiami il profilo** (`--profile` | sì | sì | sì | preset base |
+| `FSR.glsl` | sì | sì | sì | preset marcato |
 
 ### Shader NVIDIA-specifici
 

@@ -343,11 +343,8 @@ mpv --profile=cas-scaled --msg-level=all=v ~/Video/film.mkv
     ├── GLS_Low-end.zip      # Anime4K light preset, estrarre in GLS_Low-end/
     ├── Nnedi3-RAVU.zip      # contiene cartelle OpenGL/ Vulkan e .hook
     └── (una volta estratti, le relative cartelle FSRCNNX/, GLSL_High-end/, GLSL_Low-end/, Nnedi3-RAVU/ appaiono qui)
-
         ├── OpenGL\       # shader gather / win_bgfx
         ├── Vulkan\       # shader compute / gpu-next
-        ├── nnedi3-*.hook   # fallback universali
-        └── ravu-*.hook
 ```
 
 </sub>
@@ -384,7 +381,7 @@ mpv --profile=cas-scaled --msg-level=all=v ~/Video/film.mkv
 | **FSRCNNX/** | sub‑dir con shader neural SR x2/x3/x4 | sorgenti basse + GPU robusta |
 | **GLSL_High‑end/** | preset Anime4K HQ (include `mpv.conf`/`input.conf`) | anime/cartoon su PC potente |
 | **GLSL_Low‑end/** | preset Anime4K leggeri | anime su laptop/IGPU |
-| **Nnedi3-RAVU/** | NNEDI3 & RAVU in varianti `OpenGL/` e `Vulkan/` + fallback root | upscaling avanzato: NNEDI3 per line‑art, RAVU per film/anime moderni |
+| **Nnedi3-RAVU/** | NNEDI3 & RAVU in varianti `OpenGL/` e `Vulkan/` + fallback root | upscaling: NNEDI3 per line‑art, RAVU per film/anime moderni |
 
 </sub>
 

@@ -460,7 +460,7 @@ Questi non fanno parte del setup base, ma possono essere citati nella guida come
 | SSimDownscaler | `https://gist.github.com/igv` oppure mirror community | downscaling di qualità | utile quando riduci sorgenti più grandi |
 | SSimSuperRes | `https://gist.github.com/igv` oppure mirror community | sharpening/super-res avanzato | più da profilo enthusiast |
 | RAVU | `https://github.com/bjin/mpv-prescalers` | upscaling avanzato | usare `Vulkan/` con `gpu-next + vulkan`, oppure `OpenGL/` con backend OpenGL |
-| Adaptive Sharpen | `https://gist.github.com/igv/8a77e4eb8276753b54bb94c1c50c317e` | sharpening generale | da usare con moderazione |
+| Adaptive Sharpen | `https://gist.github.com/igv/8a77e4eb8276753b54bb94c1c50c317e` | sharpening generale | con moderazione |
 
 #### Download Anime4K
 

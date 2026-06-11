@@ -1,19 +1,25 @@
-# MPV Windows e Linux +Shaders (Vulkan, CUDA, Dx3D11)
+# MPV Windows e Linux + shader scaricabili (Vulkan, D3D11)
 
-Guida pratica per installare e configurare **MPV** con profili modulari per Windows e Linux, GPU AMD/NVIDIA/Intel, shader CAS/FSR/NIS, debanding e troubleshooting.
+Guida pratica per installare e configurare **MPV** su Windows e Linux con profili modulari per GPU AMD, NVIDIA e Intel, shader CAS/FSR/NIS scaricabili separatamente, debanding e troubleshooting.
 
-L'obiettivo è avere una configurazione semplice da mantenere, abbastanza leggera da non trasformare ogni film in un benchmark termico, ma abbastanza curata da migliorare nitidezza, scaling e fluidità senza costringerti a contemplare pixel sfocati come un monaco medievale del bitrate.
+L'obiettivo è avere una configurazione semplice da mantenere, leggera quanto basta da non trasformare ogni film in un test termico, ma curata abbastanza da migliorare nitidezza, scaling e fluidità senza venerare pixel sfocati come reliquie medievali del bitrate.
 
 ---
 
 ## Indice
 
 - [Obiettivo](#obiettivo)
+- [Nota importante su shader e repository](#nota-importante-su-shader-e-repository)
 - [Prerequisiti](#prerequisiti)
 - [Installazione su Windows](#installazione-su-windows)
+- [Installazione su Windows con GUI](#installazione-su-windows-con-gui)
 - [Installazione su Linux](#installazione-su-linux)
+- [Installazione su Linux con GUI](#installazione-su-linux-con-gui)
+- [Clonare questo repository](#clonare-questo-repository)
 - [Struttura della configurazione](#struttura-della-configurazione)
 - [Shader consigliati](#shader-consigliati)
+- [Download shader su Windows](#download-shader-su-windows)
+- [Download shader su Linux](#download-shader-su-linux)
 - [Configurazione Windows](#configurazione-windows)
 - [Configurazione Linux](#configurazione-linux)
 - [Profili disponibili](#profili-disponibili)
@@ -23,6 +29,7 @@ L'obiettivo è avere una configurazione semplice da mantenere, abbastanza legger
 - [Debug](#debug)
 - [Troubleshooting](#troubleshooting)
 - [Regole pratiche](#regole-pratiche)
+- [Licenza](#licenza)
 
 ---
 
@@ -35,12 +42,41 @@ Questa guida fornisce una configurazione MPV per:
 - AMD Radeon Polaris / Vega / RDNA
 - NVIDIA GTX / RTX
 - Intel iGPU / Arc
-- shader CAS, CAS-scaled, FSR, NIS
+- shader CAS, CAS-scaled, FSR e NIS scaricati dall'utente
 - debanding leggero di default
 - profilo debanding più aggressivo opzionale
 - profili modulari richiamabili da riga di comando
+- uso da terminale oppure tramite frontend grafico
 
 La configurazione è pensata per uso reale: film, anime, serie TV, video compressi, sorgenti 720p/1080p su display più risoluti.
+
+---
+
+## Nota importante su shader e repository
+
+Questo repository **non include shader** e non deve contenere una cartella `shaders` versionata.
+
+Gli shader citati sono liberamente scaricabili dai rispettivi repository, ma restano proprietà dei rispettivi autori e vanno installati localmente dall'utente nella cartella di configurazione di MPV.
+
+In pratica:
+
+```text
+Repository GitHub:
+├── README.md
+├── mpv.conf        # opzionale, se vuoi tenerlo come file pronto
+└── input.conf      # opzionale, se vuoi tenerlo come file pronto
+```
+
+Non committare:
+
+```text
+shaders/
+*.glsl
+*.hook
+*.zip
+```
+
+La cartella `shaders` esiste solo sul PC dell'utente, dentro la directory di configurazione di MPV o del frontend grafico.
 
 ---
 
@@ -49,30 +85,33 @@ La configurazione è pensata per uso reale: film, anime, serie TV, video compres
 Servono:
 
 - MPV aggiornato
-- Git, utile per scaricare e aggiornare questo progetto
+- Git, utile per scaricare e aggiornare questo progetto e gli shader
 - una GPU con driver funzionanti
-- un terminale: PowerShell su Windows, shell Bash/Zsh/Fish su Linux
-- `unzip` su Linux, se vuoi estrarre gli shader pack `.zip` da terminale
+- un terminale: PowerShell su Windows, Bash/Zsh/Fish su Linux
+- `unzip` su Linux, se vuoi estrarre pacchetti `.zip` da terminale
+- opzionale: un frontend grafico, per esempio `mpv.net`, `Celluloid`, `Haruna` o `SMPlayer`
 
 ---
 
 ## Installazione su Windows
 
-Questa sezione installa MPV, crea le cartelle corrette e copia la configurazione dal progetto GitHub.
+Questa sezione installa MPV classico, cioè il player pilotabile da terminale.
 
-### 1. Installare Git e MPV
+### 1. Verificare winget
 
-Apri **PowerShell**.
+Apri **PowerShell**:
 
 ```powershell
 winget --version
 ```
 
-Se `winget` risponde, installa Git e MPV:
+Se `winget` risponde, procedi.
+
+### 2. Installare Git e MPV
 
 ```powershell
-winget install Git.Git
-winget install --id shinchiro.mpv
+winget install -e --id Git.Git
+winget install -e --id shinchiro.mpv
 ```
 
 Verifica:
@@ -80,118 +119,296 @@ Verifica:
 ```powershell
 git --version
 mpv --version
+where.exe mpv
 ```
 
-Se `mpv` non viene trovato nel `PATH`, chiudi e riapri PowerShell. Sì, Windows ogni tanto vuole essere riavviato anche solo per ricordarsi dove ha messo le chiavi.
+Se `mpv` non viene trovato nel `PATH`, chiudi e riapri PowerShell. Windows ogni tanto deve fissare il vuoto cosmico prima di ricordarsi il PATH.
 
-### 2. Creare la cartella configurazione
+### 3. Creare la cartella di configurazione MPV
 
 ```powershell
-mkdir "$env:APPDATA/mpv" -Force
-mkdir "$env:APPDATA/mpv/shaders" -Force
+New-Item -ItemType Directory -Force "$env:APPDATA\mpv" | Out-Null
+New-Item -ItemType Directory -Force "$env:APPDATA\mpv\shaders" | Out-Null
 ```
 
-### 3. Clonare questo progetto
+### 4. Copiare la configurazione
 
-Repository ufficiale:
+Se nel repository sono presenti `mpv.conf` e `input.conf` come file separati:
+
+```powershell
+Copy-Item .\mpv.conf "$env:APPDATA\mpv\mpv.conf" -Force
+Copy-Item .\input.conf "$env:APPDATA\mpv\input.conf" -Force
+```
+
+Se invece stai usando solo questo README, crea i file manualmente:
+
+```powershell
+notepad "$env:APPDATA\mpv\mpv.conf"
+notepad "$env:APPDATA\mpv\input.conf"
+```
+
+Poi incolla i blocchi delle sezioni [Configurazione Windows](#configurazione-windows) e [input.conf opzionale](#inputconf-opzionale).
+
+---
+
+## Installazione su Windows con GUI
+
+MPV nasce come player minimalista/command-line. Se vuoi una GUI vera, la scelta più sensata su Windows è **mpv.net**: è basato su MPV/libmpv, offre interfaccia grafica moderna e mantiene compatibilità con molte opzioni di MPV.
+
+### 1. Installare mpv.net
+
+```powershell
+winget install -e --id mpv.net
+```
+
+### 2. Aprire la cartella di configurazione di mpv.net
+
+mpv.net usa una cartella diversa da MPV classico:
+
+```text
+%APPDATA%\mpv.net
+```
+
+Puoi aprirla anche dalla GUI:
+
+```text
+Tasto destro nella finestra di mpv.net -> Config -> Open Config Folder
+```
+
+Da PowerShell:
+
+```powershell
+New-Item -ItemType Directory -Force "$env:APPDATA\mpv.net" | Out-Null
+New-Item -ItemType Directory -Force "$env:APPDATA\mpv.net\shaders" | Out-Null
+explorer "$env:APPDATA\mpv.net"
+```
+
+### 3. Copiare la configurazione per mpv.net
+
+Se nel repository sono presenti `mpv.conf` e `input.conf`:
+
+```powershell
+Copy-Item .\mpv.conf "$env:APPDATA\mpv.net\mpv.conf" -Force
+Copy-Item .\input.conf "$env:APPDATA\mpv.net\input.conf" -Force
+```
+
+Gli shader vanno scaricati nella cartella locale di mpv.net:
+
+```text
+%APPDATA%\mpv.net\shaders
+```
+
+Nota: `~~/shaders/NOME.glsl` viene risolto rispetto alla cartella config del player in uso. Quindi MPV classico usa `%APPDATA%\mpv\shaders`, mentre mpv.net usa `%APPDATA%\mpv.net\shaders`.
+
+---
+
+## Installazione su Linux
+
+### Fedora / Nobara
+
+```bash
+sudo dnf install mpv git unzip
+```
+
+### Ubuntu / Debian
+
+```bash
+sudo apt update
+sudo apt install mpv git unzip
+```
+
+### Arch / EndeavourOS / Manjaro
+
+```bash
+sudo pacman -S mpv git unzip
+```
+
+### Creare la cartella di configurazione
+
+```bash
+mkdir -p ~/.config/mpv/shaders
+```
+
+### Verifica
+
+```bash
+mpv --version
+git --version
+```
+
+---
+
+## Installazione su Linux con GUI
+
+Su Linux puoi usare MPV puro oppure un frontend grafico basato su MPV/libmpv.
+
+Scelte consigliate:
+
+| GUI | Toolkit | Quando usarla |
+|---|---|---|
+| `Celluloid` | GTK | scelta semplice e pulita, ottima su GNOME/Cinnamon |
+| `Haruna` | Qt/KDE | ottima su KDE Plasma, più ricca di opzioni |
+| `SMPlayer` | Qt | frontend storico, multipiattaforma, molto configurabile |
+
+### Celluloid via Flatpak
+
+```bash
+flatpak install flathub io.github.celluloid_player.Celluloid
+```
+
+Celluloid può usare i file di configurazione di MPV. Se usi la versione Flatpak e qualcosa non viene letto, controlla le preferenze del programma e la sandbox Flatpak: non è magia nera, solo isolamento applicativo con una maschera da burocrazia.
+
+### Haruna via Flatpak
+
+```bash
+flatpak install flathub org.kde.haruna
+```
+
+Haruna è basato su libmpv e funziona bene come player grafico moderno, specialmente in ambiente KDE.
+
+### SMPlayer
+
+Fedora / Nobara:
+
+```bash
+sudo dnf install smplayer
+```
+
+Ubuntu / Debian:
+
+```bash
+sudo apt update
+sudo apt install smplayer
+```
+
+Arch / EndeavourOS / Manjaro:
+
+```bash
+sudo pacman -S smplayer
+```
+
+Dentro SMPlayer seleziona MPV come motore:
+
+```text
+Options -> Preferences -> General -> Multimedia engine -> mpv
+```
+
+Nota pratica: i frontend grafici non sempre leggono automaticamente la stessa identica cartella config di `mpv` CLI. Se un profilo funziona da terminale ma non dalla GUI, verifica la cartella config del frontend e copia lì `mpv.conf`, `input.conf` e la cartella locale `shaders`.
+
+---
+
+## Clonare questo repository
+
+Repository:
 
 ```text
 https://github.com/Damocle77/MPV-Player.git
 ```
 
+Windows PowerShell:
+
 ```powershell
-cd "$env:USERPROFILE/Downloads"
+cd "$env:USERPROFILE\Downloads"
+git clone https://github.com/Damocle77/MPV-Player.git
+cd .\MPV-Player
+```
+
+Linux:
+
+```bash
+cd ~/Downloads
 git clone https://github.com/Damocle77/MPV-Player.git
 cd ./MPV-Player
 ```
 
-### 4. Copiare configurazione
-
-```powershell
-ettamente nel repository GitHub.
-
-Questo mantiene il progetto leggero, aggiornabile e più pulito dal punto di vista delle licenze.
-
-Scarica gli shader direttadeo/film.mkv
-```
-
-Log verboso:
-
-```bash
-mpv --profile=cas-scaled --msg-level=all=v ~/Video/film.mkv
-```
+Il repository contiene guida e configurazioni. Gli shader si scaricano a parte nelle sezioni dedicate.
 
 ---
 
 ## Struttura della configurazione
 
-### Windows
-
-<sub>
+### Windows MPV classico
 
 ```text
 %APPDATA%\mpv\
 ├── mpv.conf
 ├── input.conf
-└── shaders\
+└── shaders\              # cartella locale, NON inclusa nel repository
     ├── CAS.glsl
     ├── CAS-scaled.glsl
     ├── FSR.glsl
-    ├── NVScaler.glsl        # NVIDIA Image Scaling (opzionale)
-    ├── NVSharpen.glsl       # Sharpen NVIDIA (opzionale)
-    ├── adaptive-sharpen.glsl
-    ├── KrigBilateral.glsl
-    ├── SSimDownscaler.glsl
-    ├── SSimSuperRes.glsl
-    ├── FSRCNNX.zip          # archivio; estrarre in FSRCNNX/ per usare i preset
-    ├── GLSL_High-end.zip    # Anime4K HQ preset, estrarre in GLSL_High-end/
-    ├── GLS_Low-end.zip      # Anime4K light preset, estrarre in GLS_Low-end/
-    ├── Nnedi3-RAVU.zip      # contiene cartelle OpenGL/ Vulkan e .hook
-    └── (una volta estratti, le relative cartelle FSRCNNX/, GLSL_High-end/, GLSL_Low-end/, Nnedi3-RAVU/ appaiono qui)
-
-        ├── OpenGL\       # shader gather / win_bgfx
-        ├── Vulkan\      fig/mpv/
-├── mpv.conf
-├── input.conf
-└── shaders/    # stessa struttura di Windows
+    ├── NVScaler.glsl      # opzionale NVIDIA
+    └── NVSharpen.glsl     # opzionale NVIDIA
 ```
 
-</sub>
+### Windows mpv.net
 
-> **Suggerimento**: mantieni le cartelle `Nnedi3-RAVU/OpenGL` e `Nnedi3-RAVU/Vulkan` separate. MPV carica il file che indichi, non cerca da solo "la versione giusta". In `vo=gpu-next + gpu-api=vulkan` usa la variant *Vulkan*. In `vo=gpu` (OpenGL) usa *OpenGL*.
+```text
+%APPDATA%\mpv.net\
+├── mpv.conf
+├── input.conf
+├── mpvnet.conf            # specifico di mpv.net
+└── shaders\              # cartella locale, NON inclusa nel repository
+    ├── CAS.glsl
+    ├── CAS-scaled.glsl
+    ├── FSR.glsl
+    ├── NVScaler.glsl
+    └── NVSharpen.glsl
+```
+
+### Linux MPV classico
+
+```text
+~/.config/mpv/
+├── mpv.conf
+├── input.conf
+└── shaders/              # cartella locale, NON inclusa nel repository
+    ├── CAS.glsl
+    ├── CAS-scaled.glsl
+    ├── FSR.glsl
+    ├── NVScaler.glsl
+    └── NVSharpen.glsl
+```
+
+### Shader extra opzionali
+
+Puoi aggiungere shader avanzati creando sottocartelle locali:
+
+```text
+shaders/
+├── FSRCNNX/
+├── Anime4K/
+└── Nnedi3-RAVU/
+    ├── OpenGL/
+    └── Vulkan/
+```
+
+La distinzione `OpenGL` / `Vulkan` serve soprattutto per shader `.hook` come RAVU/NNEDI3: MPV carica il file che gli indichi, non indovina la variante giusta leggendo i fondi del caffè.
 
 ---
 
-### Contenuto della cartella `shaders`
+## Shader consigliati
 
-<sub>
+### Shader base universali
 
-| Voce | Cos'è | Quando ti serve |
-|---|---|---|
-| `CAS.glsl` / `CAS-scaled.glsl` / `FSR.glsl` | shader core universali | base: sharpening leggero / upscaling leggero / FSR più spinto |
-| `NVScaler.glsl` / `NVSharpen.glsl` | NVIDIA Image Scaling & Sharpen | su GPU NVIDIA per scaling+sharpen o solo sharpen |
-| `adaptive-sharpen.glsl` | sharpening adattivo | video già nativi ma un po' soft |
-| `KrigBilateral.glsl` | chroma scaler bilaterale | dopo un upscaler luma (es. RAVU) per qualità cromatica |
-| `SSimDownscaler.glsl` | downscaler SSIM | quando riduci 4K → 1080p e vuoi qualità |
-| `SSimSuperRes.glsl` | super‑resolution SSIM | boost di dettaglio leggero senza neural SR pesanti |
-| `FSRCNNX` | sub‑dir con shader neural SR x2/x3/x4 | sorgenti basse + GPU robusta |
-| `GLSL_High‑end` | preset Anime4K HQ (include `mpv.conf`/`input.conf`) | anime/cartoon su PC potente |
-| `GLSL_Low‑end` | preset Anime4K leggeri | anime su laptop/IGPU |
-| `Nnedi3-RAVU` | NNEDI3 & RAVU in varianti `OpenGL/` e `Vulkan/` + fallback root | upscaling: NNEDI3 per line‑art, RAVU per film/anime moderni |
+| Shader | AMD | NVIDIA | Intel | Uso |
+|---|---:|---:|---:|---|
+| `CAS.glsl` | sì | sì | sì | sharpening leggero |
+| `CAS-scaled.glsl` | sì | sì | sì | preset quotidiano equilibrato |
+| `FSR.glsl` | sì | sì | sì | upscaling/sharpening più marcato |
 
-</sub>
-
-In pratica: **scarichi, copi qui dentro, poi richiami il profilo** (`--profile` | sì | sì | sì | preset base |
-| `FSR.glsl` | sì | sì | sì | preset marcato |
-
-### Shader NVIDIA-specifici
-
-Questi shader implementano NVIDIA Image Scaling / Sharpening e nella guida vengono trattati come profili NVIDIA:
+Repository consigliato:
 
 ```text
-NVScaler.glsl
-NVSharpen.glsl
+https://github.com/agyild/glsl-shaders
 ```
+
+### Shader NVIDIA opzionali
+
+| Shader | Uso consigliato |
+|---|---|
+| `NVScaler.glsl` | NVIDIA Image Scaling, scaling + sharpening |
+| `NVSharpen.glsl` | sharpening NVIDIA senza scaling |
 
 Repository:
 
@@ -199,181 +416,73 @@ Repository:
 https://github.com/kevinlekiller/NVScaler
 ```
 
-Uso pratico:
-
-| Shader | Uso consigliato |
-|---|---|
-| `NVScaler.glsl` | upscaling NVIDIA Image Scaling |
-| `NVSharpen.glsl` | sharpening NVIDIA quando non serve scalare |
-
-Nota: essendo shader GLSL possono anche partire su altre GPU, ma non li consideriamo preset consigliati per AMD/Intel. Per AMD e Intel la strada sana è `CAS`, `CAS-scaled` o `FSR`.
+Nota: essendo shader GLSL possono anche partire su altre GPU, ma per AMD/Intel il percorso sano resta `CAS`, `CAS-scaled` o `FSR`.
 
 ### Extra avanzati opzionali
-
-Questi non fanno parte del setup base, ma possono essere citati nella guida come estensioni.
 
 | Shader / progetto | Da dove scaricarlo | Uso | Note |
 |---|---|---|---|
 | Anime4K | `https://github.com/bloc97/Anime4K/releases` | anime/cartoon | usare i pacchetti release ufficiali |
-| FSRCNNX | `https://github.com/igv/FSRCNN-TensorFlow/releases` | super-resolution avanzata | scaricare il file `.glsl` desiderato dalla release |
-| KrigBilateral | `https://gist.github.com/igv` oppure mirror community | chroma scaling | utile in catene shader avanzate |
-| SSimDownscaler | `https://gist.github.com/igv` oppure mirror community | downscaling di qualità | utile quando riduci sorgenti più grandi |
-| SSimSuperRes | `https://gist.github.com/igv` oppure mirror community | sharpening/super-res avanzato | più da profilo enthusiast |
-| RAVU | `https://github.com/bjin/mpv-prescalers` | upscaling avanzato | usare `Vulkan/` con `gpu-next + vulkan`, oppure `OpenGL/` con backend OpenGL |
-| Adaptive Sharpen | `https://gist.github.com/igv/8a77e4eb8276753b54bb94c1c50c317e` | sharpening generale | da usare con moderazione |
+| FSRCNNX | `https://github.com/igv/FSRCNN-TensorFlow/releases` | super-resolution avanzata | pesante, utile su sorgenti basse |
+| RAVU / NNEDI3 | `https://github.com/bjin/mpv-prescalers` | upscaling avanzato | scegliere variante Vulkan/OpenGL corretta |
+| Adaptive Sharpen | `https://gist.github.com/igv/8a77e4eb8276753b54bb94c1c50c317e` | sharpening generale | usare con moderazione |
 
-#### Download Anime4K
-
-Anime4K è meglio scaricarlo dalle release ufficiali, perché contiene molti shader e preset già raggruppati.
-
-Windows/Linux:
-
-```text
-https://github.com/bloc97/Anime4K/releases
-```
-
-Scarica lo ZIP della release, poi copia i file `.glsl` desiderati nella cartella `shaders` di MPV.
-
-#### Download FSRCNNX
-
-Scarica i file `.glsl` dalle release:
-
-```text
-https://github.com/igv/FSRCNN-TensorFlow/releases
-```
-
-Esempi comuni:
-
-```text
-FSRCNNX_x2_8-0-4-1.glsl
-FSRCNNX_x2_16-0-4-1.glsl
-```
-
-Più alto non significa automaticamente meglio: significa anche più carico sulla GPU e maggior probabilità di trasformare la ventola in un personaggio secondario del film.
-
-#### Download RAVU
-
-RAVU sta nel repository `mpv-prescalers`:
-
-Windows PowerShell:
-
-```powershell
-cd "$env:APPDATA\mpv\shaders"
-git clone https://github.com/bjin/mpv-prescalers.git temp-mpv-prescalers
-```
-
-Linux:
-
-```bash
-cd ~/.config/mpv/shaders
-git clone https://github.com/bjin/mpv-prescalers.git temp-mpv-prescalers
-```
-
-Dentro il repository le varianti principali sono state rinominate nella guida in modo più leggibile:
-
-```text
-temp-mpv-prescalers/Vulkan
-temp-mpv-prescalers/OpenGL
-```
-
-- `Vulkan/` = shader compute moderni, consigliati con:
-
-```ini
-vo=gpu-next
-gpu-api=vulkan
-```
-
-- `OpenGL/` = shader gather/fallback, consigliati con:
-
-```ini
-vo=gpu
-```
-
-oppure backend OpenGL legacy.
-
-La distinzione serve solo a evitare il classico dubbio esistenziale:
-
-> "compute o gather?"
-
-che per un nuovo utente suona più come un boss di Elden Ring che come una scelta di backend video.
-
-Molti shader RAVU hanno estensione `.hook`, per esempio:
-
-```text
-ravu-r4-yuv.hook
-ravu-r4-yuv-opengl.hook
-ravu-3x-r4-yuv.hook
-```
-
-In MPV l'estensione `.hook` indica semplicemente uno shader scritto nel formato user-shader/hook di MPV. Non è uno script esterno e non va messo nella cartella `scripts`: va caricato come normale shader con `glsl-shader` o `glsl-shaders`.
-
-Esempio:
-
-```ini
-[linux-ravu]
-glsl-shaders-clr
-glsl-shader="~~/shaders/ravu-r4-yuv.hook"
-```
-
-Su Windows:
-
-```ini
-[windows-ravu]
-glsl-shaders-clr
-glsl-shader="~~/shaders/ravu-r4-yuv-opengl.hook"
-```
-
-Nota pratica: alcuni `.hook` sono pensati per backend o modalità specifiche. Se uno non parte, prova prima una variante meno specifica o cambia backend grafico. Naturalmente non potevano chiamarli tutti `.glsl`, perché la serenità mentale dell'utente evidentemente non rientrava nei requisiti di progetto.
-
-#### Download shader IGV singoli
-
-(...)
-
----
-
-### Quando usare gli shader extra
-
-> Descrizioni lampo, così sai cosa caricare senza aprire un trattato di videocompressione.
-
-| Shader / profilo | Quando usarlo | Nota pratica |
-|---|---|---|
-| `adaptive-sharpen` | Video già alla risoluzione nativa ma un po' soft; vuoi un tocco di nitidezza in più senza upscaling. | Sostituto di `cas` quando senti l'immagine molliccia. |
-| `krigbilateral` | Dopo un upscaler luma (RAVU/FSRCNNX) per scalare il chroma con qualità. | Va **dopo** l'upscaling luma, non prima. |
-| `ssim-down` (SSimDownscaler) | Stai riducendo 4K → 1080p e non vuoi perdere dettaglio. | Da usare **solo** se fai downscale. |
-| `ssim-sr` (SSimSuperRes) | Vuoi un boost di dettaglio leggero su 1080p→1440p / 1440p→4K senza neural SR pesanti. | Poco più leggero di FSRCNNX. |
-| `fsrcnnx-x2` | Sorgenti bassissima risoluzione (480p/720p) e GPU robusta. | Molto pesante; non combinarlo con RAVU. |
-| `nnedi3` | Anime/line‑art nostalgico, ti serve nitidezza massima e accetti carico GPU elevato. | Variante `nns32` è compromesso; `nns128+` ≈ incendio. |
-| `ravu-r3` / `ravu-r4` | Upscaling generale moderno. `r3` bilanciato, `r4` qualità massima. | Preferito su film live action; scegli cartella `Vulkan` o `OpenGL` in base al backend. |
-
-Regola: la guida base resta su `CAS`, `CAS-scaled`, `FSR`. Gli extra vanno documentati, non buttati tutti nel preset principale come coriandoli su un server in produzione.
+Regola: la guida base resta su `CAS`, `CAS-scaled`, `FSR`. Gli extra vanno documentati, non buttati nel preset principale come coriandoli in sala server.
 
 ---
 
 ## Download shader su Windows
 
-### Shader core AMD/NVIDIA/Intel
+### MPV classico
 
 ```powershell
+New-Item -ItemType Directory -Force "$env:APPDATA\mpv\shaders" | Out-Null
 cd "$env:APPDATA\mpv\shaders"
 
 git clone https://github.com/agyild/glsl-shaders.git temp-glsl-shaders
-copy .\temp-glsl-shaders\shaders\CAS.glsl .
-copy .\temp-glsl-shaders\shaders\CAS-scaled.glsl .
-copy .\temp-glsl-shaders\shaders\FSR.glsl .
+Copy-Item .\temp-glsl-shaders\shaders\CAS.glsl . -Force
+Copy-Item .\temp-glsl-shaders\shaders\CAS-scaled.glsl . -Force
+Copy-Item .\temp-glsl-shaders\shaders\FSR.glsl . -Force
 ```
 
-### Shader NVIDIA opzionali
+Shader NVIDIA opzionali:
 
 ```powershell
 git clone https://github.com/kevinlekiller/NVScaler.git temp-nvscaler
-copy .\temp-nvscaler\NVScaler.glsl .
-copy .\temp-nvscaler\NVSharpen.glsl .
+Copy-Item .\temp-nvscaler\NVScaler.glsl . -Force
+Copy-Item .\temp-nvscaler\NVSharpen.glsl . -Force
 ```
 
 Verifica:
 
 ```powershell
-dir "$env:APPDATA\mpv\shaders"
+Get-ChildItem "$env:APPDATA\mpv\shaders"
+```
+
+### mpv.net
+
+```powershell
+New-Item -ItemType Directory -Force "$env:APPDATA\mpv.net\shaders" | Out-Null
+cd "$env:APPDATA\mpv.net\shaders"
+
+git clone https://github.com/agyild/glsl-shaders.git temp-glsl-shaders
+Copy-Item .\temp-glsl-shaders\shaders\CAS.glsl . -Force
+Copy-Item .\temp-glsl-shaders\shaders\CAS-scaled.glsl . -Force
+Copy-Item .\temp-glsl-shaders\shaders\FSR.glsl . -Force
+```
+
+Shader NVIDIA opzionali per mpv.net:
+
+```powershell
+git clone https://github.com/kevinlekiller/NVScaler.git temp-nvscaler
+Copy-Item .\temp-nvscaler\NVScaler.glsl . -Force
+Copy-Item .\temp-nvscaler\NVSharpen.glsl . -Force
+```
+
+Verifica:
+
+```powershell
+Get-ChildItem "$env:APPDATA\mpv.net\shaders"
 ```
 
 Struttura minima consigliata:
@@ -398,9 +507,8 @@ NVSharpen.glsl
 
 ## Download shader su Linux
 
-### Shader core AMD/NVIDIA/Intel
-
 ```bash
+mkdir -p ~/.config/mpv/shaders
 cd ~/.config/mpv/shaders
 
 git clone https://github.com/agyild/glsl-shaders.git temp-glsl-shaders
@@ -409,7 +517,7 @@ cp temp-glsl-shaders/shaders/CAS-scaled.glsl .
 cp temp-glsl-shaders/shaders/FSR.glsl .
 ```
 
-### Shader NVIDIA opzionali
+Shader NVIDIA opzionali:
 
 ```bash
 git clone https://github.com/kevinlekiller/NVScaler.git temp-nvscaler
@@ -423,23 +531,7 @@ Verifica:
 ls -lh ~/.config/mpv/shaders
 ```
 
-Struttura minima consigliata:
-
-```text
-CAS.glsl
-CAS-scaled.glsl
-FSR.glsl
-```
-
-Struttura completa con NVIDIA NIS:
-
-```text
-CAS.glsl
-CAS-scaled.glsl
-FSR.glsl
-NVScaler.glsl
-NVSharpen.glsl
-```
+Per frontend Flatpak, verifica la cartella di configurazione effettiva del frontend. Se non legge `~/.config/mpv`, copia `mpv.conf`, `input.conf` e gli shader nella cartella config del frontend.
 
 ---
 
@@ -451,7 +543,13 @@ Crea o modifica:
 notepad "$env:APPDATA\mpv\mpv.conf"
 ```
 
-Incolla:
+Per mpv.net:
+
+```powershell
+notepad "$env:APPDATA\mpv.net\mpv.conf"
+```
+
+Contenuto consigliato:
 
 ```ini
 # ============================================================
@@ -518,9 +616,9 @@ hwdec=d3d11va
 hwdec-codecs=all
 
 # ============================================================
-# PROFILI SHADER
-# glsl-shaders-clr evita di accumulare shader come se fosse
-# una collezione di problemi in produzione.
+# PROFILI SHADER BASE
+# glsl-shaders-clr evita di accumulare shader come una collezione
+# di problemi in produzione.
 # ============================================================
 
 [cas]
@@ -557,7 +655,7 @@ deband-range=16
 deband-grain=3
 
 # ============================================================
-# PROFILI SHADER EXTRA (opzionali / sperimentali)
+# PROFILI SHADER EXTRA - opzionali, richiedono download manuale
 # ============================================================
 
 [adaptive-sharpen]
@@ -571,12 +669,12 @@ glsl-shaders-clr
 glsl-shader="~~/shaders/KrigBilateral.glsl"
 
 [ssim-down]
-profile-desc=SSimDownscaler (downscale qualità)
+profile-desc=SSimDownscaler, downscale qualità
 glsl-shaders-clr
 glsl-shader="~~/shaders/SSimDownscaler.glsl"
 
 [ssim-sr]
-profile-desc=SSimSuperRes (sharpen/super‑res)
+profile-desc=SSimSuperRes, sharpen/super-res
 glsl-shaders-clr
 glsl-shader="~~/shaders/SSimSuperRes.glsl"
 
@@ -586,15 +684,14 @@ glsl-shaders-clr
 glsl-shader="~~/shaders/FSRCNNX/FSRCNNX_x2_16-0-4-1.glsl"
 
 [nnedi3]
-profile-desc=NNEDI3 nns32 (OpenGL gather)
+profile-desc=NNEDI3 nns32 OpenGL gather
 glsl-shaders-clr
 glsl-shader="~~/shaders/Nnedi3-RAVU/OpenGL/nnedi3-nns32-win8x4.hook"
 
 [ravu-r3]
-profile-desc=RAVU r3 YUV (OpenGL gather)
+profile-desc=RAVU r3 YUV OpenGL gather
 glsl-shaders-clr
 glsl-shader="~~/shaders/Nnedi3-RAVU/OpenGL/ravu-r3-yuv.hook"
-
 ```
 
 ---
@@ -607,7 +704,7 @@ Crea o modifica:
 nano ~/.config/mpv/mpv.conf
 ```
 
-Incolla:
+Contenuto consigliato:
 
 ```ini
 # ============================================================
@@ -679,7 +776,7 @@ profile-desc=Profilo compatibile senza decoding hardware forzato
 hwdec=no
 
 # ============================================================
-# PROFILI SHADER (base)
+# PROFILI SHADER BASE
 # ============================================================
 
 [cas]
@@ -714,6 +811,40 @@ deband-iterations=2
 deband-threshold=32
 deband-range=16
 deband-grain=3
+
+# ============================================================
+# PROFILI SHADER EXTRA - opzionali, richiedono download manuale
+# ============================================================
+
+[adaptive-sharpen]
+profile-desc=Sharpening adattivo universale
+glsl-shaders-clr
+glsl-shader="~~/shaders/adaptive-sharpen.glsl"
+
+[krigbilateral]
+profile-desc=Krig Bilateral chroma scaler
+glsl-shaders-clr
+glsl-shader="~~/shaders/KrigBilateral.glsl"
+
+[ssim-down]
+profile-desc=SSimDownscaler, downscale qualità
+glsl-shaders-clr
+glsl-shader="~~/shaders/SSimDownscaler.glsl"
+
+[ssim-sr]
+profile-desc=SSimSuperRes, sharpen/super-res
+glsl-shaders-clr
+glsl-shader="~~/shaders/SSimSuperRes.glsl"
+
+[fsrcnnx-x2]
+profile-desc=FSRCNNX x2 neural SR
+glsl-shaders-clr
+glsl-shader="~~/shaders/FSRCNNX/FSRCNNX_x2_16-0-4-1.glsl"
+
+[ravu-r3-vulkan]
+profile-desc=RAVU r3 YUV Vulkan
+glsl-shaders-clr
+glsl-shader="~~/shaders/Nnedi3-RAVU/Vulkan/ravu-r3-yuv.hook"
 ```
 
 ---
@@ -724,19 +855,19 @@ deband-grain=3
 |---|---:|---|
 | `amd-radeon` | Windows | AMD con D3D11VA |
 | `nvidia` | Windows | NVIDIA con D3D11VA |
-| `nvidia-nvdec` | Windows | NVIDIA con NVDEC, opzionale |
+| `nvidia-nvdec` | Windows | NVIDIA con NVDEC opzionale |
 | `intel` | Windows | Intel iGPU / Arc |
 | `linux-amd` | Linux | AMD con VAAPI |
 | `linux-intel` | Linux | Intel con VAAPI |
 | `linux-nvidia` | Linux | NVIDIA con decoding automatico sicuro |
 | `linux-nvidia-nvdec` | Linux | NVIDIA con NVDEC |
 | `linux-safe` | Linux | niente decoding hardware forzato |
-| `cas` | Tutti | sharpening leggero, sicuro su AMD/NVIDIA/Intel |
-| `cas-scaled` | Tutti | scaling/sharpening equilibrato, preset quotidiano |
-| `fsr` | Tutti | upscaling più marcato, utile su sorgenti sotto-risolute |
+| `cas` | tutti | sharpening leggero |
+| `cas-scaled` | tutti | scaling/sharpening equilibrato |
+| `fsr` | tutti | upscaling più marcato |
 | `nis` | NVIDIA | NVIDIA Image Scaling |
 | `nvsharpen` | NVIDIA | NVIDIA sharpening senza scaling |
-| `deband-heavy` | Tutti | banding evidente |
+| `deband-heavy` | tutti | banding evidente |
 
 ---
 
@@ -746,9 +877,6 @@ deband-grain=3
 
 ```powershell
 mpv --profile=amd-radeon,cas-scaled "D:\Video\film.mkv"
-```
-
-```powershell
 mpv --profile=amd-radeon,fsr "D:\Video\film.mkv"
 ```
 
@@ -756,23 +884,24 @@ mpv --profile=amd-radeon,fsr "D:\Video\film.mkv"
 
 ```powershell
 mpv --profile=nvidia,cas-scaled "D:\Video\film.mkv"
-```
-
-```powershell
 mpv --profile=nvidia,nis "D:\Video\film.mkv"
-```
-
-```powershell
 mpv --profile=nvidia,nvsharpen "D:\Video\film.mkv"
 ```
+
+### Windows mpv.net
+
+Se hai aggiunto mpv.net al PATH:
+
+```powershell
+mpvnet --profile=nvidia,cas-scaled "D:\Video\film.mkv"
+```
+
+Oppure apri il file dalla GUI. I profili caricati da `mpv.conf` restano disponibili.
 
 ### Linux AMD
 
 ```bash
 mpv --profile=linux-amd,cas-scaled ~/Video/film.mkv
-```
-
-```bash
 mpv --profile=linux-amd,fsr ~/Video/film.mkv
 ```
 
@@ -780,9 +909,6 @@ mpv --profile=linux-amd,fsr ~/Video/film.mkv
 
 ```bash
 mpv --profile=linux-nvidia,cas-scaled ~/Video/film.mkv
-```
-
-```bash
 mpv --profile=linux-nvidia-nvdec,nis ~/Video/film.mkv
 ```
 
@@ -790,19 +916,18 @@ mpv --profile=linux-nvidia-nvdec,nis ~/Video/film.mkv
 
 ```bash
 mpv --profile=linux-intel,cas-scaled ~/Video/film.mkv
-```
-
-```bash
 mpv --profile=linux-intel,fsr ~/Video/film.mkv
 ```
 
 ### Video con banding evidente
 
+Linux:
+
 ```bash
 mpv --profile=cas-scaled,deband-heavy ~/Video/film.mkv
 ```
 
-Su Windows:
+Windows:
 
 ```powershell
 mpv --profile=cas-scaled,deband-heavy "D:\Video\film.mkv"
@@ -812,10 +937,16 @@ mpv --profile=cas-scaled,deband-heavy "D:\Video\film.mkv"
 
 ## input.conf opzionale
 
-### Windows
+### Windows MPV classico
 
 ```powershell
-notepad "$env:APPDATA/mpv/input.conf"
+notepad "$env:APPDATA\mpv\input.conf"
+```
+
+### Windows mpv.net
+
+```powershell
+notepad "$env:APPDATA\mpv.net\input.conf"
 ```
 
 ### Linux
@@ -831,9 +962,7 @@ Contenuto consigliato:
 # MPV input.conf - toggle shader, stats, debug rapido
 # ============================================================
 
-# ------------------------------------------------------------
 # Shader rapidi base
-# ------------------------------------------------------------
 # CTRL+1 / CTRL+2 / CTRL+3 cambiano shader al volo.
 # CTRL+0 pulisce la lista shader.
 # CTRL+S mostra quali shader risultano attivi.
@@ -846,59 +975,37 @@ CTRL+5 no-osd change-list glsl-shaders set "~~/shaders/NVSharpen.glsl" ; show-te
 CTRL+0 no-osd change-list glsl-shaders clr "" ; show-text "Shader GLSL disattivati" 2000
 CTRL+s show-text "Shader attivi: ${glsl-shaders}" 5000
 
-# ------------------------------------------------------------
-# Shader extra, abilitali se hai estratto gli ZIP
-# ------------------------------------------------------------
-# Esempi utili. Tienili commentati finché non ti servono.
-# Non tutti gli shader sono felici su ogni backend. Che sorpresa, il mondo è imperfetto.
-
+# Shader extra: abilitali solo dopo aver scaricato i file.
 #CTRL+6 no-osd change-list glsl-shaders set "~~/shaders/FSRCNNX/FSRCNNX_x2_16-0-4-1.glsl" ; show-text "Shader: FSRCNNX x2" 2000
-#CTRL+7 no-osd change-list glsl-shaders set "~~/shaders/Nnedi3-RAVU/Vulkan/ravu-r3-yuv.hook" ; show-text "Shader: RAVU r3 Vulkan/gpu-next" 2000
-#CTRL+8 no-osd change-list glsl-shaders set "~~/shaders/Nnedi3-RAVU/OpenGL/ravu-r3-yuv.hook" ; show-text "Shader: RAVU r3 OpenGL legacy" 2000
+#CTRL+7 no-osd change-list glsl-shaders set "~~/shaders/Nnedi3-RAVU/Vulkan/ravu-r3-yuv.hook" ; show-text "Shader: RAVU r3 Vulkan" 2000
+#CTRL+8 no-osd change-list glsl-shaders set "~~/shaders/Nnedi3-RAVU/OpenGL/ravu-r3-yuv.hook" ; show-text "Shader: RAVU r3 OpenGL" 2000
 #CTRL+9 no-osd change-list glsl-shaders set "~~/shaders/adaptive-sharpen.glsl" ; show-text "Shader: Adaptive Sharpen" 2000
 
-# ------------------------------------------------------------
 # Stats / overlay diagnostici
-# ------------------------------------------------------------
-# i o TAB mostrano l'overlay statistiche.
-# CTRL+s mostra direttamente la property glsl-shaders.
-
 i script-binding stats/display-stats-toggle
 TAB script-binding stats/display-stats-toggle
 ? script-binding stats/display-page-5
 
-# ------------------------------------------------------------
-# Screenshot
-# ------------------------------------------------------------
-# Utile per confronto A/B: stesso frame, shader diversi.
-
+# Screenshot per confronto A/B
 s screenshot
 S screenshot video
 
-# ------------------------------------------------------------
 # Volume
-# ------------------------------------------------------------
-
 UP add volume 5
 DOWN add volume -5
 
-# ------------------------------------------------------------
 # Audio/sub delay
-# ------------------------------------------------------------
-
 CTRL+LEFT add audio-delay -0.050
 CTRL+RIGHT add audio-delay 0.050
 ALT+LEFT add sub-delay -0.050
 ALT+RIGHT add sub-delay 0.050
 ```
 
-Nota pratica: `change-list glsl-shaders set` sostituisce lo shader attivo. È più sicuro di `append` o `toggle`, perché evita di impilare tre upscaler uno sopra l'altro come se stessi costruendo una lasagna di artefatti.
+Nota pratica: `change-list glsl-shaders set` sostituisce lo shader attivo. È più sicuro di `append`, perché evita di impilare tre upscaler uno sopra l'altro come una lasagna di artefatti.
 
 ---
 
 ## Verifica shader in esecuzione
-
-Questa sezione serve a capire se MPV sta davvero caricando gli shader oppure se stai solo guardando lo stesso video con più speranza, attività nobile ma poco misurabile.
 
 ### Metodo 1: OSD durante la riproduzione
 
@@ -908,25 +1015,13 @@ Con l'`input.conf` consigliato:
 CTRL+s
 ```
 
-mostra a schermo la property:
-
-```text
-glsl-shaders
-```
-
-Se tutto funziona, vedrai qualcosa tipo:
+Se tutto funziona vedrai qualcosa tipo:
 
 ```text
 Shader attivi: ~~ / shaders / CAS-scaled.glsl
 ```
 
-oppure:
-
-```text
-Shader attivi: ~~ / shaders / FSRCNNX / FSRCNNX_x2_16-0-4-1.glsl
-```
-
-Gli spazi qui sopra sono solo per leggibilità: nel player comparirà il path reale. Se la riga è vuota, MPV non ha shader GLSL attivi.
+Gli spazi qui sopra sono solo per leggibilità. Nel player comparirà il path reale. Se la riga è vuota, MPV non ha shader GLSL attivi.
 
 ### Metodo 2: overlay statistiche
 
@@ -942,15 +1037,15 @@ oppure:
 TAB
 ```
 
-L'overlay statistiche mostra renderer, decoder, frame drop, timing e informazioni video. Non sempre mostra la lista shader in modo esplicito su tutte le build, quindi usa `CTRL+s` per la verifica diretta degli shader.
+L'overlay mostra renderer, decoder, frame drop, timing e informazioni video. Non sempre mostra la lista shader in modo esplicito, quindi `CTRL+s` resta la verifica diretta.
 
 ### Metodo 3: log da terminale
 
-Windows PowerShell:
+Windows:
 
 ```powershell
-mpv --profile=cas-scaled --msg-level=all=v "D:/Video/film.mkv" 2>&1 | Tee-Object "$env:TEMP/mpv-shader.log"
-Select-String -Path "$env:TEMP/mpv-shader.log" -Pattern "glsl|shader|CAS|FSR|RAVU|FSRCNNX|NIS"
+mpv --profile=cas-scaled --msg-level=all=v "D:/Video/film.mkv" 2>&1 | Tee-Object "$env:TEMP\mpv-shader.log"
+Select-String -Path "$env:TEMP\mpv-shader.log" -Pattern "glsl|shader|CAS|FSR|RAVU|FSRCNNX|NIS"
 ```
 
 Linux:
@@ -980,44 +1075,27 @@ mpv --no-config --pause ~/Video/film.mkv
 mpv --profile=cas-scaled --pause ~/Video/film.mkv
 ```
 
-Poi premi `s` nello stesso punto del video. Se stai confrontando frame diversi, stai facendo benchmarking creativo, non analisi.
+Poi premi `s` nello stesso punto del video. Se confronti frame diversi, stai facendo benchmarking creativo, non analisi.
 
 ### Metodo 5: verifica path shader
 
-Windows:
+Windows MPV classico:
 
 ```powershell
-dir "$env:APPDATA/mpv/shaders"
-dir "$env:APPDATA/mpv/shaders/FSRCNNX"
-dir "$env:APPDATA/mpv/shaders/Nnedi3-RAVU"
+Get-ChildItem "$env:APPDATA\mpv\shaders"
+```
+
+Windows mpv.net:
+
+```powershell
+Get-ChildItem "$env:APPDATA\mpv.net\shaders"
 ```
 
 Linux:
 
 ```bash
 ls -lh ~/.config/mpv/shaders
-ls -lh ~/.config/mpv/shaders/FSRCNNX
-ls -lh ~/.config/mpv/shaders/Nnedi3-RAVU
 ```
-
----
-
-## Cosa fanno le opzioni principali
-
-| Opzione | Dove | Significato semplice | Quando cambiarla |
-|---|---|---|---|
-| `vo=gpu-next` | Windows/Linux | renderer moderno di MPV/libplacebo | lascialo così, salvo bug specifici |
-| `gpu-api=d3d11` | Windows | backend grafico stabile su Windows | se usi Vulkan su Windows e sai perché, allora sai anche dove mettere le mani |
-| `gpu-api=vulkan` | Linux | backend consigliato per `gpu-next` e shader compute | se dà problemi, prova OpenGL |
-| `hwdec=d3d11va` | Windows | decoding hardware via D3D11 | default sano per AMD/NVIDIA/Intel |
-| `hwdec=vaapi` | Linux AMD/Intel | decoding hardware Linux | se VAAPI rompe, usa `linux-safe` |
-| `hwdec=nvdec` | NVIDIA | decoding hardware NVIDIA | opzionale; se instabile torna ad `auto-safe` |
-| `scale=ewa_lanczossharp` | tutti | scaler nitido ma non folle | se troppo tagliente, prova scaler più morbidi |
-| `dscale=mitchell` | tutti | downscale controllato | ok per uso generale |
-| `deband=yes` | tutti | riduce banding leggero | se impasta, abbassa o disattiva |
-| `video-sync=display-resample` | tutti | sincronizza video al refresh monitor | se noti scatti strani, prova `video-sync=audio` |
-| `interpolation=yes` | tutti | aiuta fluidità su mismatch fps/refresh | se crea effetto strano, metti `no` |
-| `glsl-shaders-clr` | profili | pulisce shader già caricati | fondamentale quando cambi shader, evita il circo multi-upscaler |
 
 ---
 
@@ -1081,10 +1159,16 @@ NVScaler
 
 Controlla che i file siano davvero nella cartella corretta.
 
-Windows:
+Windows MPV classico:
 
 ```powershell
-dir "$env:APPDATA\mpv\shaders"
+Get-ChildItem "$env:APPDATA\mpv\shaders"
+```
+
+Windows mpv.net:
+
+```powershell
+Get-ChildItem "$env:APPDATA\mpv.net\shaders"
 ```
 
 Linux:
@@ -1100,7 +1184,7 @@ CAS.glsl.txt
 FSR.glsl.txt
 ```
 
-Perché nascondere le estensioni dei file continua a essere considerata una brillante idea UX da qualche parte nel multiverso.
+Nascondere le estensioni dei file continua a essere una delle peggiori idee UX mai sopravvissute al contatto con la civiltà.
 
 ### Video troppo tagliente
 
@@ -1152,13 +1236,13 @@ vainfo
 
 Se `vainfo` manca:
 
-Fedora/Nobara:
+Fedora / Nobara:
 
 ```bash
 sudo dnf install libva-utils
 ```
 
-Ubuntu/Debian:
+Ubuntu / Debian:
 
 ```bash
 sudo apt install vainfo
@@ -1189,6 +1273,27 @@ Su Linux torna a:
 ```bash
 mpv --profile=linux-nvidia,cas-scaled ~/Video/film.mkv
 ```
+
+### La GUI ignora i profili
+
+Sintomo: da terminale funziona, dalla GUI no.
+
+Cause probabili:
+
+- la GUI usa una cartella config diversa
+- stai usando una versione Flatpak con sandbox
+- gli shader sono nella cartella di MPV CLI, ma non nella cartella della GUI
+- `mpv.conf` è stato copiato nel posto sbagliato
+
+Verifica prima il path config della GUI, poi copia lì:
+
+```text
+mpv.conf
+input.conf
+shaders/
+```
+
+La cartella `shaders` resta locale e non va committata nel repository.
 
 ---
 
@@ -1290,11 +1395,9 @@ nis + nvsharpen
 cas-scaled + fsr + nis
 ```
 
-Più shader non significa più qualità. Spesso significa soltanto prendere una sorgente già maltrattata e incidere i suoi difetti nel marmo con zelo quasi religioso.
+Più shader non significa più qualità. Spesso significa prendere una sorgente già maltrattata e incidere i suoi difetti nel marmo con zelo quasi religioso.
 
 ---
-
-> *Nota pratica:* se inizi a concatenare cinque shader neurali, due sharpen e un downscaler “per vedere cosa succede”, quello che succede è che MPV diventa un benchmark ambulante e la GPU inizia a rivalutare le sue scelte di vita.
 
 ## Setup consigliati rapidi
 
@@ -1318,5 +1421,6 @@ Più shader non significa più qualità. Spesso significa soltanto prendere una 
 
 ## Licenza
 
-Questa guida può essere usata, modificata e adattata liberamente. Gli shader citati appartengono ai rispettivi repository/autori.
+Questa guida può essere usata, modificata e adattata liberamente.
 
+Gli shader citati non sono inclusi in questo repository e appartengono ai rispettivi repository/autori. Scaricali sempre dalle fonti originali indicate nella guida e verifica le relative licenze prima di redistribuirli.

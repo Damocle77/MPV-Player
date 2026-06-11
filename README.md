@@ -1,4 +1,8 @@
-# MPV Windows-Linux +shader scaricabili (Vulkan, D3D11)
+<p align="center">
+  <img src="./mpvlogo.jpg" alt="Download MPV Now" width="780">
+</p>
+
+# MPV Windows e Linux + shader scaricabili (Vulkan, D3D11)
 
 Guida pratica per installare e configurare **MPV** su Windows e Linux con profili modulari per GPU AMD, NVIDIA e Intel, shader CAS/FSR/NIS scaricabili separatamente, debanding e troubleshooting.
 

@@ -1,5 +1,5 @@
-<p align="center">
-  <img src="./mpvlogo.jpg" alt="Download MPV Now" width="780">
+<p align="left">
+  <img src="./mpvlogo.jpg" alt="Download MPV Now" width="640">
 </p>
 
 # MPV Windows e Linux + shader Open (Vulkan, D3D11)
